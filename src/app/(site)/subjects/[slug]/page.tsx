@@ -3,8 +3,12 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Check, ChevronLeft, CircleHelp, Lightbulb } from "lucide-react";
-import { getSubject, subjects, type SubjectTone } from "@/lib/subjects";
+import { subjects, type SubjectTone } from "@/lib/subjects";
+import { getSubjectData } from "@/lib/subjects-data";
 import { flow, siteMeta } from "@/lib/content";
+
+// 管理画面から編集した内容を、再ビルドなしで反映するため5分ごとに作り直す
+export const revalidate = 300;
 
 /** 検定ごとのアクセント色 */
 const heroTone: Record<SubjectTone, string> = {
@@ -36,7 +40,7 @@ export async function generateMetadata({
   params,
 }: PageProps<"/subjects/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const subject = getSubject(slug);
+  const subject = await getSubjectData(slug);
 
   if (!subject) return {};
 
@@ -63,7 +67,7 @@ function SectionTitle({ tone, children }: { tone: SubjectTone; children: ReactNo
 
 export default async function SubjectPage({ params }: PageProps<"/subjects/[slug]">) {
   const { slug } = await params;
-  const subject = getSubject(slug);
+  const subject = await getSubjectData(slug);
 
   if (!subject) notFound();
 

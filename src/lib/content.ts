@@ -624,6 +624,62 @@ export const adminVoices = {
   },
 } as const;
 
+/** 管理画面：検定ページ */
+export const adminSubjects = {
+  title: "検定ページの管理",
+  editLabel: "編集",
+  saveLabel: "保存する",
+  savingLabel: "保存しています…",
+  savedLabel: "保存しました",
+  cancelLabel: "キャンセル",
+  addRowLabel: "＋ 行を追加",
+  removeRowLabel: "削除",
+  /** セクション見出し */
+  sections: {
+    basicInfo: "基本情報",
+    basics: "基本情報テーブル",
+    training: `対策内容`,
+    pricing: "料金プラン",
+    pricingPlans: "級ごとの受講料",
+    pricingOptions: "追加オプション（任意）",
+    struggles: "つまずきやすいポイント",
+  },
+  /** 各入力欄のラベル */
+  fields: {
+    name: "検定名（短い表記）",
+    fullName: "正式名称",
+    category: "カテゴリ",
+    organizer: "主催団体",
+    tone: "アクセント色",
+    catchCopy: "キャッチコピー",
+    overview: "概要",
+    basicsLabel: "項目名（例：実施回数）",
+    basicsValue: "内容（例：年2回）",
+    trainingItem: "対策内容の1項目",
+    pricingLead: "料金プランのリード文",
+    pricingNote: "料金プラン下部の注記",
+    planGrade: "級",
+    planPrice: "金額",
+    planUnit: "単位（例：円 / 1時間）",
+    optionName: "オプション名",
+    optionPrice: "金額",
+    optionDescription: "説明",
+    struggleProblem: "つまずきポイント",
+    struggleSolution: "解決方法",
+  },
+  toneOptions: [
+    { value: "sakura", label: "ピンク" },
+    { value: "lemon", label: "イエロー" },
+    { value: "sky", label: "ブルー" },
+    { value: "mint", label: "ミント" },
+  ] as const,
+  errors: {
+    required: "入力してください",
+    generic: "保存できませんでした。時間をおいて再度お試しください。",
+    notFound: "検定が見つかりませんでした。",
+  },
+} as const;
+
 /**
  * 新着情報。
  * 通常は Supabase の news テーブルから取得する（src/lib/news.ts）。
