@@ -513,6 +513,34 @@ export const admin = {
   ],
 } as const;
 
+/** 管理画面：新着情報 */
+export const adminNews = {
+  title: "新着情報の管理",
+  newLabel: "新しい記事を作成",
+  editLabel: "編集",
+  deleteLabel: "削除",
+  deleteConfirm: "この記事を削除します。よろしいですか？（元に戻せません）",
+  emptyMessage: "まだ記事がありません。",
+  publishedLabel: "公開中",
+  draftLabel: "非公開",
+  /** 作成・編集フォームの項目 */
+  form: {
+    dateLabel: "公開日",
+    categoryLabel: "カテゴリ",
+    titleLabel: "タイトル",
+    publishedLabel: "公開する（チェックを外すと下書きとして非表示になります）",
+    submitCreateLabel: "作成する",
+    submitEditLabel: "更新する",
+    submittingLabel: "保存しています…",
+    cancelLabel: "キャンセル",
+  },
+  errors: {
+    required: "入力してください",
+    generic: "保存できませんでした。時間をおいて再度お試しください。",
+    notFound: "記事が見つかりませんでした。",
+  },
+} as const;
+
 /**
  * 新着情報。
  * 通常は Supabase の news テーブルから取得する（src/lib/news.ts）。
@@ -528,6 +556,11 @@ export const news = {
   listLead: "商業検定ラボからのお知らせをまとめています。",
   /** 表示できる記事が1件も無いときの文言 */
   emptyMessage: "現在お知らせはありません。",
+  /**
+   * カテゴリの選択肢。NewsCategoryTag.tsx の色分けとセットになっている
+   * （ここに無いカテゴリ名を管理画面で入力しても保存はできるが、表示色は既定のブルーになる）。
+   */
+  categories: ["お知らせ", "講座情報", "合格実績"] as const,
   items: [
     {
       id: "1",
