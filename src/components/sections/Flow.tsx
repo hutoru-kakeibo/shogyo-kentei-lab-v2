@@ -61,7 +61,7 @@ export function Flow() {
                     上半分の白いハイライトとリングで立体感を出している。
                   */}
                   <span
-                    className={`relative grid size-14 shrink-0 place-content-center overflow-hidden rounded-2xl bg-gradient-to-br leading-none shadow-md ring-1 ring-white/60 before:absolute before:inset-x-0 before:top-0 before:h-1/2 before:bg-white/25 before:content-[''] ${badgeTone[step.tone]}`}
+                    className={`relative grid size-14 shrink-0 place-content-center overflow-hidden rounded-2xl bg-gradient-to-br text-center leading-none shadow-md ring-1 ring-white/60 before:absolute before:inset-x-0 before:top-0 before:h-1/2 before:bg-white/25 before:content-[''] ${badgeTone[step.tone]}`}
                   >
                     <span className="relative text-[9px] font-bold leading-none tracking-[0.18em] opacity-90">
                       STEP
