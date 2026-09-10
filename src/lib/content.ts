@@ -541,6 +541,44 @@ export const adminNews = {
   },
 } as const;
 
+/** 管理画面：無料体験の申し込み */
+export const adminTrials = {
+  title: "無料体験の申し込み",
+  emptyMessage: "まだ申し込みがありません。",
+  backLabel: "一覧に戻る",
+  statusLabel: "対応状況",
+  /** status カラムの値と、画面上の表示・バッジ色の対応 */
+  statusOptions: [
+    { value: "new", label: "新規", badgeClass: "bg-sakura-100 text-sakura-600" },
+    { value: "contacted", label: "連絡済み", badgeClass: "bg-lemon-200 text-ink" },
+    { value: "done", label: "完了", badgeClass: "bg-mint-100 text-mint-500" },
+    { value: "canceled", label: "キャンセル", badgeClass: "bg-ink-muted/10 text-ink-muted" },
+  ] as const,
+  /** 詳細画面の項目ラベル */
+  fields: {
+    subject: "受けたい検定",
+    targetGrade: "受験予定の級",
+    name: "お名前",
+    kana: "ふりがな",
+    gradeYear: "学年",
+    school: "学校名",
+    email: "メールアドレス",
+    tel: "電話番号",
+    preferred: "希望日時",
+    message: "相談したいこと",
+    createdAt: "申し込み日時",
+  },
+  noMessage: "（記入なし）",
+  noTel: "（未記入）",
+  updateSubmitLabel: "対応状況を更新する",
+  updatingLabel: "更新しています…",
+  updatedLabel: "更新しました",
+  errors: {
+    generic: "更新できませんでした。時間をおいて再度お試しください。",
+    notFound: "申し込みが見つかりませんでした。",
+  },
+} as const;
+
 /**
  * 新着情報。
  * 通常は Supabase の news テーブルから取得する（src/lib/news.ts）。
