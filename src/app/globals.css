@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme {
+  /* 本文：Noto Sans JP / 見出し：Zen Maru Gothic（まるっこくて親しみやすい） */
+  --font-sans: "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", system-ui, sans-serif;
+  --font-round: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Noto Sans JP", system-ui,
+    sans-serif;
+  /* 英字の手書き風あしらい（Point 1 / STRONG POINT など） */
+  --font-script: "Caveat", "Zen Maru Gothic", cursive;
+
+  /* メイン1：パステルピンク（sakura） */
+  --color-sakura-50: #fff5f8;
+  --color-sakura-100: #ffe6ee;
+  --color-sakura-200: #ffcede;
+  --color-sakura-300: #ffadc8;
+  --color-sakura-400: #ff8fb4;
+  --color-sakura-500: #fb6f9d;
+  --color-sakura-600: #e84f83;
+
+  /* メイン2：パステルイエロー（lemon）。濃い文字色と組み合わせて使う */
+  --color-lemon-50: #fffcef;
+  --color-lemon-100: #fff7d6;
+  --color-lemon-200: #ffefb0;
+  --color-lemon-300: #ffe484;
+  --color-lemon-400: #ffd84d;
+  --color-lemon-500: #f8c721;
+  --color-lemon-600: #e0ad00;
+
+  /* サブ：既存LPから継承したスカイブルー（#00a2e7）。3つ目のCTAやリンクに */
+  --color-sky-50: #f0faff;
+  --color-sky-100: #dcf3fd;
+  --color-sky-300: #7fd6f6;
+  --color-sky-400: #40b9ed;
+  --color-sky-500: #00a2e7;
+  --color-sky-600: #0089c7;
+
+  /* サブ：ミント（合格・チェックマークなどポジティブな記号に少量だけ） */
+  --color-mint-100: #d9f9ef;
+  --color-mint-300: #7fe0c8;
+  --color-mint-500: #34c9a7;
+
+  --color-canvas: #fff9fb;
+  --color-surface: #ffffff;
+  --color-ink: #43304a;
+  --color-ink-muted: #8b7a90;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* iPhoneのホームインジケータ分の余白 */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* 横スクロール要素のスクロールバーを隠す */
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* 見出し用の丸ゴシック */
+@utility font-round {
+  font-family: var(--font-round);
+}
+
+/* 手書き風の英字 */
+@utility font-script {
+  font-family: var(--font-script);
+}

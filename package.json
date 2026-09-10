@@ -1,0 +1,34 @@
+{
+  "name": "website2",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "setup:supabase": "node scripts/setup-supabase.mjs",
+    "check:supabase": "node scripts/check-supabase.mjs",
+    "setup:gmail": "node scripts/setup-gmail.mjs",
+    "check:mail": "node scripts/check-mail.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
+    "lucide-react": "^1.42.0",
+    "next": "16.3.4",
+    "nodemailer": "^10.0.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/nodemailer": "^8.0.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
