@@ -1,7 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { BottomNav } from "@/components/layout/BottomNav";
-import { ScrollTopButton } from "@/components/layout/ScrollTopButton";
 import { siteMeta } from "@/lib/content";
 import "./globals.css";
 
@@ -35,6 +32,12 @@ export const viewport: Viewport = {
   themeColor: "#ff8fb4",
 };
 
+/**
+ * ルートレイアウト。
+ * 生徒向けページ共通のヘッダー・追従ボトムナビ・スマホ幅の枠は、
+ * ここではなく src/app/(site)/layout.tsx 側で描画する
+ * （/login・/admin は管理者用の別画面なので、その見た目を持たせないため）。
+ */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ja" className="h-full antialiased">
@@ -51,14 +54,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Maru+Gothic:wght@500;700;900&family=Caveat:wght@600;700&display=swap"
         />
       </head>
-      <body className="min-h-full bg-sakura-100/60 font-sans">
-        <div className="mx-auto min-h-dvh w-full max-w-[480px] bg-canvas shadow-xl shadow-sakura-600/10">
-          <SiteHeader />
-          <div className="pb-28">{children}</div>
-        </div>
-        <ScrollTopButton />
-        <BottomNav />
-      </body>
+      <body className="min-h-full bg-canvas font-sans">{children}</body>
     </html>
   );
 }

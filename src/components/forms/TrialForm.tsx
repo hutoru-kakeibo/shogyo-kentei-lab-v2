@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { CircleAlert, CircleCheck, Send } from "lucide-react";
 import { courseSearch, trialForm } from "@/lib/content";
-import { submitTrialApplication } from "@/app/trial/actions";
+import { submitTrialApplication } from "@/lib/trial-actions";
 
 // 「今日」を基準にカレンダーを組み立てるため、サーバー側では描画しない（表示ズレ防止）
 const TrialDateTimePicker = dynamic(

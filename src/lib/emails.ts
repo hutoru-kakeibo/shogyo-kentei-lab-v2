@@ -1,6 +1,6 @@
 import { siteMeta } from "@/lib/content";
 import { notifyTo, sendMail } from "@/lib/mailer";
-import type { TrialApplicationInput } from "@/app/trial/actions";
+import type { TrialApplicationInput } from "@/lib/trial-actions";
 
 /**
  * 無料体験の申し込みに関するメール本文。

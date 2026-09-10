@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { trialForm, trialSchedule } from "@/lib/content";
-import { getTakenSlots, type TakenSlots } from "@/app/trial/actions";
+import { getTakenSlots, type TakenSlots } from "@/lib/trial-actions";
 
 const { weekdayNames } = trialForm.schedule;
 

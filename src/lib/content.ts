@@ -464,6 +464,55 @@ export const faq = {
   ],
 } as const;
 
+/** 管理者ログイン画面 */
+export const adminLogin = {
+  title: "管理者ログイン",
+  emailLabel: "メールアドレス",
+  passwordLabel: "パスワード",
+  submitLabel: "ログイン",
+  submittingLabel: "ログインしています…",
+  errors: {
+    required: "メールアドレスとパスワードを入力してください",
+    invalidCredentials: "メールアドレスまたはパスワードが正しくありません",
+    notAdmin: "このアカウントには管理者権限がありません",
+    generic: "ログインできませんでした。時間をおいて再度お試しください。",
+  },
+} as const;
+
+/** 管理画面（ダッシュボード） */
+export const admin = {
+  title: "管理画面",
+  backToSite: "サイトを見る",
+  logoutLabel: "ログアウト",
+  /** ダッシュボードから各管理画面への入口 */
+  sections: [
+    {
+      id: "news",
+      href: "/admin/news",
+      label: "新着情報",
+      description: "一覧・作成・編集・削除・公開のON/OFF",
+    },
+    {
+      id: "trials",
+      href: "/admin/trials",
+      label: "無料体験の申し込み",
+      description: "一覧の確認、対応状況の更新",
+    },
+    {
+      id: "voices",
+      href: "/admin/voices",
+      label: "合格体験記",
+      description: "追加・削除",
+    },
+    {
+      id: "subjects",
+      href: "/admin/subjects",
+      label: "検定ページ",
+      description: "内容の編集",
+    },
+  ],
+} as const;
+
 /**
  * 新着情報。
  * 通常は Supabase の news テーブルから取得する（src/lib/news.ts）。
