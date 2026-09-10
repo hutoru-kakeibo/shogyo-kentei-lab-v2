@@ -344,7 +344,8 @@ export const trialForm = {
 
 /**
  * 合格者の声（合格体験記カード）。
- * ⚠️ 氏名・数値・コメントはすべて仮のプレースホルダー。実際の合格者の実績に差し替えること。
+ * 通常は Supabase の voices テーブルから取得する（src/lib/voice.ts）。
+ * ここに書く items は、Supabase 未設定・取得失敗時のフォールバック用の仮データ。
  */
 export const voice = {
   title: "合格者の声",
@@ -352,6 +353,8 @@ export const voice = {
   lead: "商業検定ラボで学んだ先輩たちの学習記録です。",
   prevLabel: "前の声",
   nextLabel: "次の声",
+  /** 合格体験記が1件も無いときの文言 */
+  emptyMessage: "現在、合格体験記を準備中です。",
   /** 学習実績テーブルの項目ラベル */
   labels: {
     totalHours: "合計時間",
@@ -576,6 +579,48 @@ export const adminTrials = {
   errors: {
     generic: "更新できませんでした。時間をおいて再度お試しください。",
     notFound: "申し込みが見つかりませんでした。",
+  },
+} as const;
+
+/** 管理画面：合格体験記 */
+export const adminVoices = {
+  title: "合格体験記の管理",
+  newLabel: "新しい体験記を作成",
+  deleteLabel: "削除",
+  deleteConfirm: "この合格体験記を削除します。よろしいですか？（元に戻せません）",
+  emptyMessage: "まだ合格体験記がありません。",
+  /** カードの色（4色から選ぶ） */
+  toneLabel: "カードの色",
+  toneOptions: [
+    { value: "sakura", label: "ピンク" },
+    { value: "lemon", label: "イエロー" },
+    { value: "sky", label: "ブルー" },
+    { value: "mint", label: "ミント" },
+  ] as const,
+  /** 作成フォームの項目 */
+  form: {
+    gradeLabelLabel: "合格した検定・級（見出し）",
+    gradeLabelPlaceholder: "例：日商簿記2級合格！",
+    bioLabel: "一言プロフィール",
+    bioPlaceholder: "例：生徒会副会長をやりながら",
+    nameLabel: "お名前・呼び名",
+    photoLabel: "写真",
+    photoHint: "任意。未設定の場合はプレースホルダーが表示されます。",
+    uploadingLabel: "アップロードしています…",
+    totalHoursLabel: "合計時間",
+    mockBestScoreLabel: "模擬最高点",
+    totalDaysLabel: "合計日数",
+    mockCountLabel: "模擬試験回数",
+    recommendPointLabel: "塾の推しポイント（2行まで）",
+    recommendPointHint: "改行すると2行で表示されます。",
+    submitLabel: "作成する",
+    submittingLabel: "保存しています…",
+    cancelLabel: "キャンセル",
+  },
+  errors: {
+    required: "入力してください",
+    uploadFailed: "写真のアップロードに失敗しました。もう一度お試しください。",
+    generic: "保存できませんでした。時間をおいて再度お試しください。",
   },
 } as const;
 
