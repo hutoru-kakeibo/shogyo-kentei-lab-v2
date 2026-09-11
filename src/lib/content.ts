@@ -195,7 +195,7 @@ export const teachers = {
       tone: "sakura",
       imageLabel: "後藤もか（講師）の写真",
       /** public/images 配下の写真パス。null のときはプレースホルダーを表示する */
-      photo: "/images/teacher-k.jpg",
+      photo: "/images/teacher-k.jpg" as string | null,
       school: "宮崎学園高校→立命館大学",
       qualifications: ["全商9冠", "実用英検2級", "日商簿記2級", "秘書検定準1級"],
       intro:
@@ -206,7 +206,7 @@ export const teachers = {
       name: "森田智信（塾長）",
       tone: "lemon",
       imageLabel: "森田智信（塾長）の写真",
-      photo: "/images/teacher-m.jpg",
+      photo: "/images/teacher-m.jpg" as string | null,
       school: "岡山東商業高校→立命館大学",
       qualifications: [
         "全商7冠（そろばん・英語以外）",
@@ -221,7 +221,7 @@ export const teachers = {
       name: "阪井たくみ（英語顧問・講師）",
       tone: "sky",
       imageLabel: "阪井たくみ（英語顧問・講師）の写真",
-      photo: "/images/teacher-s.jpg",
+      photo: "/images/teacher-s.jpg" as string | null,
       school: "○○県立○○商業高等学校 卒業",
       qualifications: ["共通テスト英語満点","TOEIC790スコア"],
       intro:
