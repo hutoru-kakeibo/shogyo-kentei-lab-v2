@@ -220,8 +220,8 @@ export const teachers = {
       id: "teacher-3",
       name: "阪井たくみ（英語顧問・講師）",
       tone: "sky",
-      imageLabel: "Y先生の写真",
-      photo: null,
+      imageLabel: "阪井たくみ（英語顧問・講師）の写真",
+      photo: "/images/teacher-s.jpg",
       school: "○○県立○○商業高等学校 卒業",
       qualifications: ["共通テスト英語満点","TOEIC790スコア"],
       intro:
