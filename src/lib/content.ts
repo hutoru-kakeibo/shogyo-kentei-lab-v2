@@ -109,12 +109,12 @@ export const strongPoint = {
   points: [
     {
       no: "Point 1",
-      imageLabel: "オンライン自習室のイメージ",
+      imageLabel: "相談に乗るスタッフの写真",
       icon: "Users",
       tone: "sakura",
       headline: "一人で悩まず\n相談できるプロが居る",
       /** public/images 配下の画像パス。null のときはプレースホルダーを表示する */
-      image: null as string | null,
+      image: "/images/strong-point-1.jpg" as string | null,
     },
     {
       no: "Point 2",
