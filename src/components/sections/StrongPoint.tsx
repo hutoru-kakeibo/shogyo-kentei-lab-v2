@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { strongPoint } from "@/lib/content";
 import { ImagePlaceholder, type PlaceholderTone } from "@/components/ui/ImagePlaceholder";
 
@@ -46,12 +47,24 @@ export function StrongPoint() {
       {strongPoint.points.map((point, index) => (
         <div key={point.no} className={`px-6 py-12 text-center ${pointBackground[index]}`}>
           <div className="relative mx-auto w-[248px]">
-            <ImagePlaceholder
-              label={point.imageLabel}
-              icon={point.icon}
-              tone={point.tone}
-              className="size-[248px] rounded-full shadow-lg shadow-sakura-600/10"
-            />
+            {point.image ? (
+              <div className="relative size-[248px] overflow-hidden rounded-full shadow-lg shadow-sakura-600/10">
+                <Image
+                  src={point.image}
+                  alt={point.imageLabel}
+                  fill
+                  sizes="248px"
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <ImagePlaceholder
+                label={point.imageLabel}
+                icon={point.icon}
+                tone={point.tone}
+                className="size-[248px] rounded-full shadow-lg shadow-sakura-600/10"
+              />
+            )}
             {/* 円からはみ出して重なる吹き出し */}
             <span
               className={`absolute -left-3 -top-2 z-10 rounded-2xl px-5 py-2 font-script text-xl font-bold shadow-lg ${bubbleTone[point.tone]}`}

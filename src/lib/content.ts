@@ -113,6 +113,8 @@ export const strongPoint = {
       icon: "Users",
       tone: "sakura",
       headline: "一人で悩まず\n相談できるプロが居る",
+      /** public/images 配下の画像パス。null のときはプレースホルダーを表示する */
+      image: null as string | null,
     },
     {
       no: "Point 2",
@@ -120,6 +122,7 @@ export const strongPoint = {
       icon: "MessageCircleHeart",
       tone: "lemon",
       headline: "わからない！\nを共感できる",
+      image: null as string | null,
     },
     {
       no: "Point 3",
@@ -127,6 +130,7 @@ export const strongPoint = {
       icon: "ClipboardCheck",
       tone: "sky",
       headline: "検定情報も進路相談も、\nまるごとサポート！",
+      image: "/images/strong-point-3.svg" as string | null,
     },
   ],
 } as const;
