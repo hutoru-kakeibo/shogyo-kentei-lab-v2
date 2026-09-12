@@ -8,6 +8,7 @@ import { Voice } from "@/components/sections/Voice";
 import { FreeMaterials } from "@/components/sections/FreeMaterials";
 import { Faq } from "@/components/sections/Faq";
 import { News } from "@/components/sections/News";
+import { FaqJsonLd, OrganizationJsonLd } from "@/components/seo/JsonLd";
 
 /**
  * 新着情報を Supabase から取得するため、5分ごとにページを作り直す。
@@ -18,6 +19,8 @@ export const revalidate = 300;
 export default function Home() {
   return (
     <main>
+      <OrganizationJsonLd />
+      <FaqJsonLd />
       <Hero />
       <About />
       <StrongPoint />

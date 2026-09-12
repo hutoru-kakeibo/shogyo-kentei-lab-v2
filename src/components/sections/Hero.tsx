@@ -44,18 +44,20 @@ export function Hero() {
           </span>
         ))}
 
-        {/* キャッチコピー */}
+        {/* キャッチコピー。ページ唯一の h1 としてサイトの主題を検索エンジンに伝える */}
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-4 text-center">
-          <p>
-            <span className="inline-block -rotate-2 rounded-lg bg-sakura-500 px-3 py-1 font-round text-[26px] font-bold tracking-tight text-white shadow-lg shadow-sakura-600/25">
-              {hero.copyLines[0]}
+          <h1>
+            <span className="block">
+              <span className="inline-block -rotate-2 rounded-lg bg-sakura-500 px-3 py-1 font-round text-[26px] font-bold tracking-tight text-white shadow-lg shadow-sakura-600/25">
+                {hero.copyLines[0]}
+              </span>
             </span>
-          </p>
-          <p className="mt-2">
-            <span className="inline-block rotate-1 rounded-lg bg-lemon-400 px-3 py-1 font-round text-[26px] font-bold tracking-tight text-ink shadow-lg shadow-lemon-600/25">
-              {hero.copyLines[1]}
+            <span className="mt-2 block">
+              <span className="inline-block rotate-1 rounded-lg bg-lemon-400 px-3 py-1 font-round text-[26px] font-bold tracking-tight text-ink shadow-lg shadow-lemon-600/25">
+                {hero.copyLines[1]}
+              </span>
             </span>
-          </p>
+          </h1>
           <p className="mt-4 font-script text-2xl font-bold text-sakura-500">{hero.script}</p>
         </div>
       </div>

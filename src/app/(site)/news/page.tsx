@@ -8,6 +8,8 @@ import { NewsCategoryTag } from "@/components/ui/NewsCategoryTag";
 export const metadata: Metadata = {
   title: news.title,
   description: `${siteMeta.name}からのお知らせ・講座情報・合格実績を一覧でご覧いただけます。`,
+  alternates: { canonical: "/news" },
+  openGraph: { title: `${news.title}｜${siteMeta.name}`, url: `${siteMeta.url}/news` },
   robots: { index: true, follow: true },
 };
 

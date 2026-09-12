@@ -9,7 +9,19 @@ export const metadata: Metadata = {
     template: `%s｜${siteMeta.name}`,
   },
   description: siteMeta.description,
-  keywords: ["全商検定", "商業高校", "全商簿記", "情報処理検定", "全商英検", "検定対策", "オンライン塾"],
+  keywords: [
+    "全商検定",
+    "商業高校",
+    "全商簿記",
+    "情報処理検定",
+    "全商英検",
+    "検定対策",
+    "オンライン塾",
+    "商業高校生",
+    "日商簿記",
+    "個別指導",
+  ],
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "ja_JP",
@@ -17,13 +29,26 @@ export const metadata: Metadata = {
     siteName: siteMeta.name,
     title: `${siteMeta.name}｜${siteMeta.tagline}`,
     description: siteMeta.description,
+    images: [
+      {
+        url: siteMeta.ogImage,
+        width: 1200,
+        height: 630,
+        alt: `${siteMeta.name}｜${siteMeta.tagline}`,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${siteMeta.name}｜${siteMeta.tagline}`,
     description: siteMeta.description,
+    images: [siteMeta.ogImage],
   },
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
 };
 
 export const viewport: Viewport = {

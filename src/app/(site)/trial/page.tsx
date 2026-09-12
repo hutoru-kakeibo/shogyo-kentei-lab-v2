@@ -7,6 +7,8 @@ import { siteMeta, trialForm } from "@/lib/content";
 export const metadata: Metadata = {
   title: trialForm.title,
   description: `${siteMeta.name}の無料体験のお申し込みページです。対策したい検定と希望の日時をお送りください。1時間の無料体験で実際の授業を体験いただけます。`,
+  alternates: { canonical: "/trial" },
+  openGraph: { title: `${trialForm.title}｜${siteMeta.name}`, url: `${siteMeta.url}/trial` },
   robots: { index: true, follow: true },
 };
 

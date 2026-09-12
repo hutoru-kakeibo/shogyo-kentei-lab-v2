@@ -6,6 +6,7 @@ import { ArrowRight, Check, ChevronLeft, CircleHelp, Lightbulb } from "lucide-re
 import { subjects, type SubjectTone } from "@/lib/subjects";
 import { getSubjectData } from "@/lib/subjects-data";
 import { flow, siteMeta } from "@/lib/content";
+import { BreadcrumbJsonLd, CourseJsonLd } from "@/components/seo/JsonLd";
 
 // 管理画面から編集した内容を、再ビルドなしで反映するため5分ごとに作り直す
 export const revalidate = 300;
@@ -50,7 +51,12 @@ export async function generateMetadata({
   return {
     title,
     description,
-    openGraph: { title: `${title}｜${siteMeta.name}`, description },
+    alternates: { canonical: `/subjects/${slug}` },
+    openGraph: {
+      title: `${title}｜${siteMeta.name}`,
+      description,
+      url: `${siteMeta.url}/subjects/${slug}`,
+    },
   };
 }
 
@@ -73,6 +79,18 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
 
   return (
     <main>
+      <CourseJsonLd
+        name={`${subject.name}の対策講座`}
+        description={`${subject.fullName}の対策を1対1のオンライン個別指導で行います。${subject.catchCopy}`}
+        url={`${siteMeta.url}/subjects/${slug}`}
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "ホーム", path: "" },
+          { name: subject.name, path: `/subjects/${slug}` },
+        ]}
+      />
+
       {/* ヒーロー */}
       <section className={`bg-gradient-to-b px-5 pb-10 pt-6 ${heroTone[subject.tone]}`}>
         <Link

@@ -10,7 +10,10 @@ export const siteMeta = {
   headerTagline: "商業高校生専門の検定塾",
   description:
     "全商簿記・情報処理・全商英検など、全商検定のすべてを対策できる日本初の商業高校生専門オンライン検定塾。部活と両立しながら、最短ルートで合格へ。無料体験受付中。",
-  url: "https://shogyo-kentei-lab.vercel.app",
+  /** 本番URL。独自ドメインに移行したらここだけ変えれば全ページのcanonical・OGに反映される */
+  url: "https://shogyo-kentei-lab-v2.vercel.app",
+  /** OGP・Twitterカードで使う画像（1200x630） */
+  ogImage: "/images/og.png",
 };
 
 /**
