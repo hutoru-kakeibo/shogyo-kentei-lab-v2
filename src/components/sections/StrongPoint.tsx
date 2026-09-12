@@ -43,8 +43,10 @@ export function StrongPoint() {
         </div>
       </div>
 
-      {/* Point 1〜3 */}
-      {strongPoint.points.map((point, index) => (
+      {/* Point 1〜3。hidden: true のポイントは本格実装まで非表示にする */}
+      {strongPoint.points
+        .filter((point) => !point.hidden)
+        .map((point, index) => (
         <div key={point.no} className={`px-6 py-12 text-center ${pointBackground[index]}`}>
           <div className="relative mx-auto w-[248px]">
             {point.image ? (

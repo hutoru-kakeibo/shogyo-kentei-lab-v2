@@ -115,6 +115,8 @@ export const strongPoint = {
       headline: "一人で悩まず\n相談できるプロが居る",
       /** public/images 配下の画像パス。null のときはプレースホルダーを表示する */
       image: "/images/strong-point-1.jpg" as string | null,
+      /** 本格実装まで一時的に非表示にする場合は true にする */
+      hidden: false,
     },
     {
       no: "Point 2",
@@ -123,6 +125,7 @@ export const strongPoint = {
       tone: "lemon",
       headline: "わからない！\nを共感できる",
       image: null as string | null,
+      hidden: true,
     },
     {
       no: "Point 3",
@@ -131,6 +134,7 @@ export const strongPoint = {
       tone: "sky",
       headline: "検定情報も進路相談も、\nまるごとサポート！",
       image: "/images/strong-point-3.svg" as string | null,
+      hidden: true,
     },
   ],
 } as const;
