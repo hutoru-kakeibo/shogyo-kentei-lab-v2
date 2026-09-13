@@ -154,9 +154,12 @@ export function TrialForm() {
       // 保存できていないので、完了画面は出さず入力内容を残したままエラーを表示する
       setSendError(result.message);
 
-      if (result.message === trialForm.errors.slotTaken) {
-        // 選んでいた日時はもう埋まっているので選択を外し、
-        // ピッカーを作り直して最新の空き状況を取り直す
+      if (
+        result.message === trialForm.errors.slotTaken ||
+        result.message === trialForm.errors.slotUnavailable
+      ) {
+        // 選んでいた日時はもう埋まっている（または受付を止めた）ので選択を外し、
+        // ピッカーを作り直して最新の受付設定・空き状況を取り直す
         setValues((current) => ({ ...current, preferredDate: "", preferredTime: "" }));
         setPickerKey((key) => key + 1);
       }

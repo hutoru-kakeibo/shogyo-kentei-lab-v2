@@ -2,40 +2,30 @@
 
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { trialForm, trialSchedule } from "@/lib/content";
-import { getTakenSlots, type TakenSlots } from "@/lib/trial-actions";
+import { trialForm } from "@/lib/content";
+import { getTakenSlots, getTrialSchedule, type TakenSlots } from "@/lib/trial-actions";
+import {
+  bookableRange,
+  fallbackTrialSchedule,
+  slotsForDate,
+  type TrialSchedule,
+} from "@/lib/trial-schedule";
 
 const { weekdayNames } = trialForm.schedule;
 
-/** ローカル時刻のまま YYYY-MM-DD を作る（UTC変換で日付がずれるのを避ける） */
-function toKey(date: Date) {
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${date.getFullYear()}-${month}-${day}`;
+/** カレンダーのマス（年・月・日）から YYYY-MM-DD を作る */
+function toKey(year: number, monthIndex: number, day: number) {
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function addDays(date: Date, days: number) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
-}
-
-function startOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-/** その日に受け付けている時間帯を返す */
-export function slotsForDate(key: string) {
-  if (trialSchedule.closedDates.includes(key)) return [];
-  const [year, month, day] = key.split("-").map(Number);
-  const weekday = new Date(year, month - 1, day).getDay();
-  return trialSchedule.slotsByWeekday[weekday] ?? [];
+/** YYYY-MM-DD が属する月の1日 */
+function monthStartOfKey(key: string) {
+  const [year, month] = key.split("-").map(Number);
+  return new Date(year, month - 1, 1);
 }
 
 /** 「9月14日（土）」の形に整える */
-export function formatDateLabel(key: string) {
+function formatDateLabel(key: string) {
   const [year, month, day] = key.split("-").map(Number);
   const weekday = weekdayNames[new Date(year, month - 1, day).getDay()];
   return `${month}月${day}日（${weekday}）`;
@@ -50,6 +40,12 @@ type Props = {
   timeError?: string;
 };
 
+type Loaded = {
+  schedule: TrialSchedule;
+  taken: TakenSlots;
+  range: { from: string; to: string };
+};
+
 export function TrialDateTimePicker({
   date,
   time,
@@ -58,66 +54,72 @@ export function TrialDateTimePicker({
   dateError,
   timeError,
 }: Props) {
-  // このコンポーネントはクライアント側でのみ読み込まれる（TrialForm 側で ssr: false 指定）ため、
-  // 初期化時に現在日時を使ってもサーバーとの表示ズレは起きない。
-  const [range] = useState(() => {
-    const today = startOfDay(new Date());
-    return {
-      min: addDays(today, trialSchedule.leadDays),
-      max: addDays(today, trialSchedule.rangeDays),
-    };
-  });
-  const [viewMonth, setViewMonth] = useState(() => startOfMonth(range.min));
-
-  // すでに埋まっている日時。null は「取得中」、取得に失敗したときは {}（制約なしとして動く）
-  const [taken, setTaken] = useState<TakenSlots | null>(null);
+  // 受付設定（管理画面で変更可能）と予約状況。null は「取得中」
+  const [loaded, setLoaded] = useState<Loaded | null>(null);
+  const [viewMonth, setViewMonth] = useState<Date | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    getTakenSlots(toKey(range.min), toKey(range.max)).then((result) => {
-      if (!cancelled) setTaken(result);
-    });
+    (async () => {
+      let schedule = fallbackTrialSchedule;
+      let taken: TakenSlots = {};
+      try {
+        schedule = await getTrialSchedule();
+        const range = bookableRange(schedule);
+        taken = await getTakenSlots(range.from, range.to);
+      } catch (error) {
+        // 通信に失敗してもフォームは使えるようにする（送信時にサーバー側で受付可否を再確認する）
+        console.error("[trial] 受付設定・予約状況を取得できませんでした:", error);
+      }
+      if (cancelled) return;
+
+      const range = bookableRange(schedule);
+      setLoaded({ schedule, taken, range });
+      setViewMonth(monthStartOfKey(range.from));
+    })();
 
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- range は初回のみ確定し、以後変わらない
   }, []);
 
   // 予約状況を取得できたら、すでに選択済みの日時が埋まっていないか確認し、
   // 埋まっていれば選び直してもらう（表示直後に他の人が予約していた場合の保険）
   useEffect(() => {
-    if (!taken || !date || !time) return;
-    if (taken[date]?.includes(time)) onTimeChange("");
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- taken が変わったときだけ確認する
-  }, [taken]);
+    if (!loaded || !date || !time) return;
+    if (loaded.taken[date]?.includes(time)) onTimeChange("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 取得が終わったときだけ確認する
+  }, [loaded]);
 
-  /** その日の、まだ予約が入っていない受講可能時間 */
-  const availableSlotsForDate = (key: string) => {
-    const bookedTimes = taken?.[key] ?? [];
-    return slotsForDate(key).filter((slot) => !bookedTimes.includes(slot));
-  };
-
-  const firstDay = startOfMonth(viewMonth);
-  const daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0).getDate();
-  const leadingBlanks = firstDay.getDay();
-
-  const canGoPrev = startOfMonth(range.min) < firstDay;
-  const canGoNext = firstDay < startOfMonth(range.max);
-
-  const shiftMonth = (amount: number) =>
-    setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + amount, 1));
-
-  // 予約状況を取得できるまでは、「一部の日だけ空きあり」のように見えてしまわないよう
+  // 取得できるまでは、「一部の日だけ空きあり」のように見えてしまわないよう
   // カレンダー全体をスケルトン表示にしておく
-  if (taken === null) {
+  if (!loaded || !viewMonth) {
     return <div className="h-72 animate-pulse rounded-2xl bg-sakura-100" aria-hidden="true" />;
   }
 
+  const { schedule, taken, range } = loaded;
+
+  /** その日の、まだ予約が入っていない受講可能時間 */
+  const availableSlotsForDate = (key: string) => {
+    const bookedTimes = taken[key] ?? [];
+    return slotsForDate(schedule, key).filter((slot) => !bookedTimes.includes(slot));
+  };
+
+  const year = viewMonth.getFullYear();
+  const monthIndex = viewMonth.getMonth();
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  const leadingBlanks = viewMonth.getDay();
+
+  const canGoPrev = monthStartOfKey(range.from) < viewMonth;
+  const canGoNext = viewMonth < monthStartOfKey(range.to);
+
+  const shiftMonth = (amount: number) => setViewMonth(new Date(year, monthIndex + amount, 1));
+
   const selectedSlots = date ? availableSlotsForDate(date) : [];
   // 受付枠自体はあるが、全時間が予約で埋まっている状態かどうか
-  const isFullyBooked = Boolean(date) && slotsForDate(date).length > 0 && selectedSlots.length === 0;
+  const isFullyBooked =
+    Boolean(date) && slotsForDate(schedule, date).length > 0 && selectedSlots.length === 0;
 
   return (
     <div>
@@ -135,7 +137,7 @@ export function TrialDateTimePicker({
             <ChevronLeft className="size-5" strokeWidth={3} />
           </button>
           <span className="font-round text-[15px] font-bold text-ink">
-            {viewMonth.getFullYear()}年{viewMonth.getMonth() + 1}月
+            {year}年{monthIndex + 1}月
           </span>
           <button
             type="button"
@@ -167,9 +169,8 @@ export function TrialDateTimePicker({
           ))}
 
           {Array.from({ length: daysInMonth }, (_, index) => {
-            const current = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), index + 1);
-            const key = toKey(current);
-            const inRange = current >= range.min && current <= range.max;
+            const key = toKey(year, monthIndex, index + 1);
+            const inRange = key >= range.from && key <= range.to;
             const selectable = inRange && availableSlotsForDate(key).length > 0;
             const isSelected = key === date;
 

@@ -3,6 +3,8 @@
 import { getSupabaseClient } from "@/lib/supabase";
 import { sendTrialMails } from "@/lib/emails";
 import { trialForm } from "@/lib/content";
+import { isBookable, type TrialSchedule } from "@/lib/trial-schedule";
+import { loadTrialSchedule } from "@/lib/trial-schedule-data";
 
 export type TrialApplicationInput = {
   subject: string;
@@ -30,6 +32,14 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Postgres の一意制約違反エラーコード */
 const UNIQUE_VIOLATION = "23505";
+
+/**
+ * 申し込みフォームのカレンダーに使う受付設定。
+ * ページのキャッシュを通さずに毎回取得するので、管理画面での変更がすぐ反映される。
+ */
+export async function getTrialSchedule(): Promise<TrialSchedule> {
+  return loadTrialSchedule();
+}
 
 /**
  * 指定期間内で、すでに予約が入っている日時の一覧を取得する。
@@ -80,6 +90,12 @@ export async function submitTrialApplication(
     input.consent;
 
   if (!filled) return { ok: false, message: trialForm.errors.invalid };
+
+  // 受付外の日時は保存しない（フォームを開いたあとに管理画面で受付を止めた場合など）
+  const schedule = await loadTrialSchedule();
+  if (!isBookable(schedule, input.preferredDate, input.preferredTime)) {
+    return { ok: false, message: trialForm.errors.slotUnavailable };
+  }
 
   const supabase = getSupabaseClient();
 
