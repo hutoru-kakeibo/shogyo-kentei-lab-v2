@@ -246,7 +246,7 @@ export const teachers = {
       tone: "sky",
       imageLabel: "阪井たくみ（英語顧問・講師）の写真",
       photo: "/images/teacher-s.jpg" as string | null,
-      school: "佐久長聖高校",
+      school: "佐久長聖高校→立命館大学",
       qualifications: ["共通テスト英語満点","TOEIC790スコア"],
       intro:
         "英語って難しくて嫌い。そんな人も多いかもしれませんが、所詮は日本語と同じ言語です。コツさえ掴めば、アメリカやヨーロッパの子供が理解できてみなさんが理解できないってことはないと思います。\nまだまだ英語を習い始めて10歳になっていない人が多いと思うので焦らずやっていきましょう。",
