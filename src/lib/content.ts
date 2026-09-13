@@ -270,14 +270,14 @@ export const courseSearch = {
         { name: "情報処理検定（プログラミング）", href: "/subjects/programming", ready: true },
         { name: "英語検定", href: "/subjects/zensho-eiken", ready: true },
         { name: "ビジネス文書実務検定", href: "/subjects/bunsho-sakusei", ready: true },
-        { name: "商業経済検定", href: "/subjects/shogyo-keizai", ready: false },
+        { name: "商業経済検定", href: "/subjects/shogyo-keizai", ready: true },
         { name: "珠算・電卓実務検定", href: "/subjects/dentaku-jitsumu", ready: true },
-        { name: "財務諸表分析", href: "/subjects/zaimu-shohyo-bunseki", ready: false },
+        { name: "財務諸表分析", href: "/subjects/zaimu-shohyo-bunseki", ready: true },
       ],
     },
     {
       name: "その他の検定",
-      items: [{ name: "日商簿記検定", href: "/subjects/nissho-boki", ready: false }],
+      items: [{ name: "日商簿記検定", href: "/subjects/nissho-boki", ready: true }],
     },
     {
       name: "進学・就職対策",
