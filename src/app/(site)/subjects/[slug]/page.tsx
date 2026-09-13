@@ -7,6 +7,7 @@ import { subjects, type SubjectTone } from "@/lib/subjects";
 import { getSubjectData } from "@/lib/subjects-data";
 import { flow, siteMeta } from "@/lib/content";
 import { BreadcrumbJsonLd, CourseJsonLd } from "@/components/seo/JsonLd";
+import { withDefaultOpenGraph } from "@/lib/seo";
 
 // 管理画面から編集した内容を、再ビルドなしで反映するため5分ごとに作り直す
 export const revalidate = 300;
@@ -52,11 +53,11 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical: `/subjects/${slug}` },
-    openGraph: {
+    openGraph: withDefaultOpenGraph({
       title: `${title}｜${siteMeta.name}`,
       description,
       url: `${siteMeta.url}/subjects/${slug}`,
-    },
+    }),
   };
 }
 

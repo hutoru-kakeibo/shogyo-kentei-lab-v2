@@ -9,10 +9,17 @@ function JsonLdScript({ data }: { data: Record<string, unknown> }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      // 管理画面から入力した文字列に </script> が含まれていても、タグを閉じられないようにする
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }}
     />
   );
 }
+
+const organizationRef = {
+  "@type": "EducationalOrganization",
+  name: siteMeta.name,
+  url: siteMeta.url,
+};
 
 /** 塾そのものの情報。トップページに置く */
 export function OrganizationJsonLd() {
@@ -79,11 +86,7 @@ export function CourseJsonLd({
         description,
         url,
         inLanguage: "ja",
-        provider: {
-          "@type": "EducationalOrganization",
-          name: siteMeta.name,
-          url: siteMeta.url,
-        },
+        provider: organizationRef,
         offers: {
           "@type": "Offer",
           category: "無料体験",
@@ -96,6 +99,42 @@ export function CourseJsonLd({
           courseMode: "online",
           courseWorkload: "PT60M",
         },
+      }}
+    />
+  );
+}
+
+/** コラム記事用。検索結果で記事として扱われ、公開日・更新日が伝わる */
+export function ArticleJsonLd({
+  title,
+  description,
+  url,
+  publishedAt,
+  updatedAt,
+}: {
+  title: string;
+  description: string;
+  url: string;
+  publishedAt: string;
+  updatedAt: string;
+}) {
+  const image = `${siteMeta.url}${siteMeta.ogImage}`;
+
+  return (
+    <JsonLdScript
+      data={{
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: title,
+        description,
+        url,
+        mainEntityOfPage: { "@type": "WebPage", "@id": url },
+        datePublished: publishedAt,
+        dateModified: updatedAt,
+        image,
+        inLanguage: "ja",
+        author: organizationRef,
+        publisher: { ...organizationRef, logo: { "@type": "ImageObject", url: image } },
       }}
     />
   );

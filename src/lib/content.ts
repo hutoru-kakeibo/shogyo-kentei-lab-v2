@@ -31,6 +31,8 @@ export const globalNav = [
   { label: "合格者の声", href: "/#voice" },
   { label: "無料教材", href: "/#materials" },
   { label: "よくある質問", href: "/#faq" },
+  // コラムは記事が0件だとトップに欄が出ないので、アンカーではなく一覧ページへリンクする
+  { label: "コラム", href: "/columns" },
   { label: "新着情報", href: "/#news" },
   { label: "ログイン", href: "/login" },
 ];
@@ -524,6 +526,12 @@ export const admin = {
       label: "検定ページ",
       description: "内容の編集",
     },
+    {
+      id: "columns",
+      href: "/admin/columns",
+      label: "コラム",
+      description: "勉強法などの記事の作成・編集・削除・下書き",
+    },
   ],
 } as const;
 
@@ -688,6 +696,86 @@ export const adminSubjects = {
     required: "入力してください",
     generic: "保存できませんでした。時間をおいて再度お試しください。",
     notFound: "検定が見つかりませんでした。",
+  },
+} as const;
+
+/**
+ * コラム（勉強法などの記事）。
+ * 記事本体は Supabase の articles テーブルから取得する（src/lib/articles.ts）。
+ */
+export const columns = {
+  title: "コラム",
+  englishTitle: "COLUMN",
+  lead: "全商検定の勉強法や、検定・進路に役立つ情報をお届けします。",
+  listLead: "全商検定の勉強法や、検定・進路に役立つ情報をまとめています。",
+  moreLabel: "コラムをもっと見る",
+  moreHref: "/columns",
+  emptyMessage: "現在公開中のコラムはありません。",
+  backToList: "コラム一覧に戻る",
+  publishedLabel: "公開日",
+  updatedLabel: "更新日",
+  /** カテゴリの選択肢。ArticleCategoryTag.tsx の色分けとセットになっている */
+  categories: ["勉強法", "検定情報", "進路・就職"] as const,
+  /** 記事の最後に出す無料体験への誘導 */
+  cta: {
+    title: "ひとりで悩まず、プロに相談しよう",
+    body: "商業検定ラボでは、1時間の無料体験で実際の授業を体験できます。",
+    label: "無料体験を申し込む",
+    href: "/trial",
+  },
+} as const;
+
+/** 管理画面：コラム */
+export const adminArticles = {
+  title: "コラムの管理",
+  newLabel: "新しいコラムを書く",
+  editLabel: "コラムを編集",
+  deleteLabel: "削除",
+  viewLabel: "公開ページを見る",
+  deleteConfirm: "このコラムを削除します。よろしいですか？（元に戻せません）",
+  emptyMessage: "まだコラムがありません。",
+  publishedLabel: "公開中",
+  draftLabel: "下書き",
+  form: {
+    titleLabel: "タイトル",
+    titleHint: "検索されそうな言葉を入れると効果的です（例：全商英検2級の勉強法｜合格までの3ステップ）",
+    slugLabel: "URL",
+    slugHint:
+      "半角の英小文字・数字・ハイフンで入力します。検索に登録された後に変えると評価がリセットされるので、公開後は変えないでください。",
+    descriptionLabel: "記事の概要",
+    descriptionHint: "検索結果に表示される説明文です。80〜120文字が目安です",
+    categoryLabel: "カテゴリ",
+    dateLabel: "公開日",
+    bodyLabel: "本文",
+    editTab: "書く",
+    previewTab: "プレビュー",
+    previewEmpty: "本文を入力すると、ここに仕上がりが表示されます。",
+    publishedLabel: "公開する（チェックを外すと下書きとして保存され、サイトには表示されません）",
+    submitCreateLabel: "保存する",
+    submitEditLabel: "更新する",
+    submittingLabel: "保存しています…",
+    cancelLabel: "キャンセル",
+    charCount: "文字",
+  },
+  /** 本文の書き方ガイド（フォームに折りたたみで表示） */
+  guide: {
+    title: "本文の書き方（タップで開く）",
+    items: [
+      { syntax: "## 見出し", result: "大見出し" },
+      { syntax: "### 小見出し", result: "小見出し" },
+      { syntax: "- 項目", result: "箇条書き" },
+      { syntax: "1. 項目", result: "番号付きリスト" },
+      { syntax: "**強調したい文字**", result: "太字（黄色マーカー）" },
+      { syntax: "[リンクの文字](/trial)", result: "リンク" },
+    ],
+    note: "空行を入れると段落が分かれます。リンク先には https:// で始まるURLか、/trial や /subjects/zensho-eiken のようなサイト内のパスが使えます。",
+  },
+  errors: {
+    required: "タイトル・URL・記事の概要・本文を入力してください",
+    slugFormat:
+      "URLは半角の英小文字・数字・ハイフンで入力してください（先頭・末尾やハイフンの連続は使えません）",
+    slugTaken: "このURLはすでに別のコラムで使われています",
+    generic: "保存できませんでした。時間をおいて再度お試しください。",
   },
 } as const;
 

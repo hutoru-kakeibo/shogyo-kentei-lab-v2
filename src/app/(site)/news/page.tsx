@@ -4,12 +4,16 @@ import { ChevronLeft } from "lucide-react";
 import { news, siteMeta } from "@/lib/content";
 import { getNewsItems } from "@/lib/news";
 import { NewsCategoryTag } from "@/components/ui/NewsCategoryTag";
+import { withDefaultOpenGraph } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: news.title,
   description: `${siteMeta.name}からのお知らせ・講座情報・合格実績を一覧でご覧いただけます。`,
   alternates: { canonical: "/news" },
-  openGraph: { title: `${news.title}｜${siteMeta.name}`, url: `${siteMeta.url}/news` },
+  openGraph: withDefaultOpenGraph({
+    title: `${news.title}｜${siteMeta.name}`,
+    url: `${siteMeta.url}/news`,
+  }),
   robots: { index: true, follow: true },
 };
 
