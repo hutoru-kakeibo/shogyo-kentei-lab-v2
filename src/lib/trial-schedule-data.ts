@@ -11,17 +11,30 @@ type TrialSettingsRow = {
   range_days: number;
   slots_by_weekday: Record<string, unknown>;
   closed_dates: unknown;
+  /** trial_settings_date_overrides.sql 実行前の環境では存在しない */
+  date_overrides?: unknown;
 };
 
+function toStringArray(value: unknown) {
+  return Array.isArray(value) ? value.map(String) : [];
+}
+
 function toSchedule(row: TrialSettingsRow): TrialSchedule {
+  const overrides =
+    row.date_overrides && typeof row.date_overrides === "object" && !Array.isArray(row.date_overrides)
+      ? (row.date_overrides as Record<string, unknown>)
+      : {};
+
   return normalizeTrialSchedule({
     leadDays: row.lead_days,
     rangeDays: row.range_days,
-    slotsByWeekday: Array.from({ length: 7 }, (_, weekday) => {
-      const slots = row.slots_by_weekday?.[String(weekday)];
-      return Array.isArray(slots) ? slots.map(String) : [];
-    }),
-    closedDates: Array.isArray(row.closed_dates) ? row.closed_dates.map(String) : [],
+    slotsByWeekday: Array.from({ length: 7 }, (_, weekday) =>
+      toStringArray(row.slots_by_weekday?.[String(weekday)]),
+    ),
+    closedDates: toStringArray(row.closed_dates),
+    dateOverrides: Object.fromEntries(
+      Object.entries(overrides).map(([date, slots]) => [date, toStringArray(slots)]),
+    ),
   });
 }
 
@@ -33,11 +46,8 @@ export async function loadTrialSchedule(): Promise<TrialSchedule> {
   const supabase = getSupabaseClient();
   if (!supabase) return fallbackTrialSchedule;
 
-  const { data, error } = await supabase
-    .from("trial_settings")
-    .select("lead_days, range_days, slots_by_weekday, closed_dates")
-    .eq("id", 1)
-    .maybeSingle();
+  // date_overrides 列の追加前でも取得できるよう、列を指定せずに読む
+  const { data, error } = await supabase.from("trial_settings").select("*").eq("id", 1).maybeSingle();
 
   if (error) {
     console.error("[trial] 受付設定の取得に失敗しました:", error.message);

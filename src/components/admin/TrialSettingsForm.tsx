@@ -12,11 +12,12 @@ import {
   todayInJapan,
   type TrialSchedule,
 } from "@/lib/trial-schedule";
+import { TrialDateOverridesEditor } from "@/components/admin/TrialDateOverridesEditor";
 
 const inputClass =
   "w-full rounded-xl border border-sakura-200 bg-white px-4 py-3 text-[15px] text-ink outline-none focus:border-sakura-400 focus:ring-2 focus:ring-sakura-200";
 
-const { fields, sections, presetTimes, weekdayNames } = adminTrialSettings;
+const { fields, sections, presetTimes, weekdayNames, dateOverrideEditor } = adminTrialSettings;
 
 /** 2026-09-16 → 9/16（水） */
 function formatShortDate(key: string) {
@@ -39,6 +40,9 @@ export function TrialSettingsForm({ initial }: { initial: TrialSchedule }) {
   const [rangeDays, setRangeDays] = useState(String(initial.rangeDays));
   const [slotsByWeekday, setSlotsByWeekday] = useState<string[][]>(initial.slotsByWeekday);
   const [closedDates, setClosedDates] = useState<string[]>(initial.closedDates);
+  const [dateOverrides, setDateOverrides] = useState<Record<string, string[]>>(
+    initial.dateOverrides,
+  );
   const [customTimes, setCustomTimes] = useState<string[]>(() => Array(7).fill(""));
   const [newClosedDate, setNewClosedDate] = useState("");
   const [saving, setSaving] = useState(false);
@@ -49,7 +53,12 @@ export function TrialSettingsForm({ initial }: { initial: TrialSchedule }) {
   const range = Number(rangeDays);
   const rangeValid =
     Number.isInteger(lead) && Number.isInteger(range) && lead >= 0 && range >= 1 && lead <= range;
-  const preview = rangeValid ? bookableRange({ leadDays: lead, rangeDays: range, slotsByWeekday, closedDates }, today) : null;
+  const preview = rangeValid
+    ? bookableRange(
+        { leadDays: lead, rangeDays: range, slotsByWeekday, closedDates, dateOverrides },
+        today,
+      )
+    : null;
 
   const setSlotsFor = (weekday: number, next: string[]) => {
     setSlotsByWeekday((current) =>
@@ -70,11 +79,20 @@ export function TrialSettingsForm({ initial }: { initial: TrialSchedule }) {
     setCustomTimes((current) => current.map((value, index) => (index === weekday ? "" : value)));
   };
 
+  const updateClosedDates = (next: string[]) => {
+    setClosedDates(next);
+    setResult(null);
+  };
+
+  const updateDateOverrides = (next: Record<string, string[]>) => {
+    setDateOverrides(next);
+    setResult(null);
+  };
+
   const addClosedDate = () => {
     if (!DATE_PATTERN.test(newClosedDate)) return;
-    setClosedDates((current) => [...new Set([...current, newClosedDate])].sort());
+    updateClosedDates([...new Set([...closedDates, newClosedDate])].sort());
     setNewClosedDate("");
-    setResult(null);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -87,6 +105,7 @@ export function TrialSettingsForm({ initial }: { initial: TrialSchedule }) {
       rangeDays: range,
       slotsByWeekday,
       closedDates,
+      dateOverrides,
     });
 
     setSaving(false);
@@ -203,7 +222,7 @@ export function TrialSettingsForm({ initial }: { initial: TrialSchedule }) {
                   </div>
                 </div>
 
-                <div className="mt-3 grid grid-cols-4 gap-1.5 sm:grid-cols-8">
+                <div className="mt-3 grid grid-cols-4 gap-1.5 sm:grid-cols-7">
                   {presetTimes.map((presetTime) => {
                     const active = slots.includes(presetTime);
                     return (
@@ -273,6 +292,20 @@ export function TrialSettingsForm({ initial }: { initial: TrialSchedule }) {
         </ul>
       </section>
 
+      {/* 日ごとの受付時間 */}
+      <section className="space-y-4">
+        <SectionTitle>{dateOverrideEditor.title}</SectionTitle>
+        <p className="text-[12px] leading-relaxed text-ink-muted">{dateOverrideEditor.hint}</p>
+        <TrialDateOverridesEditor
+          today={today}
+          slotsByWeekday={slotsByWeekday}
+          dateOverrides={dateOverrides}
+          closedDates={closedDates}
+          onDateOverridesChange={updateDateOverrides}
+          onClosedDatesChange={updateClosedDates}
+        />
+      </section>
+
       {/* 休講日 */}
       <section className="space-y-4">
         <SectionTitle>{sections.closed}</SectionTitle>
@@ -309,10 +342,7 @@ export function TrialSettingsForm({ initial }: { initial: TrialSchedule }) {
                 <li key={closedDate}>
                   <button
                     type="button"
-                    onClick={() => {
-                      setClosedDates((current) => current.filter((value) => value !== closedDate));
-                      setResult(null);
-                    }}
+                    onClick={() => updateClosedDates(closedDates.filter((value) => value !== closedDate))}
                     aria-label={`${closedDate} ${fields.removeLabel}`}
                     className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold ${
                       isPast ? "bg-ink-muted/10 text-ink-muted" : "bg-sakura-100 text-sakura-600"
@@ -350,7 +380,7 @@ export function TrialSettingsForm({ initial }: { initial: TrialSchedule }) {
       <button
         type="submit"
         disabled={saving || !rangeValid}
-        className="w-full rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-6 py-3.5 font-round text-[15px] font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5 disabled:opacity-60"
+        className="sticky bottom-4 w-full rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-6 py-3.5 font-round text-[15px] font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5 disabled:opacity-60"
       >
         {saving ? adminTrialSettings.savingLabel : adminTrialSettings.saveLabel}
       </button>

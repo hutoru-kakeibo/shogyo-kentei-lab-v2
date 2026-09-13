@@ -14,10 +14,16 @@ export type TrialSchedule = {
   slotsByWeekday: string[][];
   /** 受付を止める日（YYYY-MM-DD） */
   closedDates: string[];
+  /** その日だけの受付時間（YYYY-MM-DD → 時間の一覧）。曜日ごとの設定より優先する */
+  dateOverrides: Record<string, string[]>;
 };
 
 export const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 export const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function uniqueSortedTimes(times: string[]) {
+  return [...new Set(times.filter((time) => TIME_PATTERN.test(time)))].sort();
+}
 
 /** 取得前に並べ替え・重複削除しておき、どこで使っても同じ形になるようにする */
 export function normalizeTrialSchedule(input: TrialSchedule): TrialSchedule {
@@ -25,9 +31,15 @@ export function normalizeTrialSchedule(input: TrialSchedule): TrialSchedule {
     leadDays: Math.trunc(input.leadDays),
     rangeDays: Math.trunc(input.rangeDays),
     slotsByWeekday: Array.from({ length: 7 }, (_, weekday) =>
-      [...new Set((input.slotsByWeekday[weekday] ?? []).filter((time) => TIME_PATTERN.test(time)))].sort(),
+      uniqueSortedTimes(input.slotsByWeekday[weekday] ?? []),
     ),
     closedDates: [...new Set(input.closedDates.filter((date) => DATE_PATTERN.test(date)))].sort(),
+    dateOverrides: Object.fromEntries(
+      Object.entries(input.dateOverrides ?? {})
+        .filter(([date, slots]) => DATE_PATTERN.test(date) && Array.isArray(slots))
+        .map(([date, slots]) => [date, uniqueSortedTimes(slots)] as const)
+        .sort(([a], [b]) => a.localeCompare(b)),
+    ),
   };
 }
 
@@ -39,6 +51,7 @@ export const fallbackTrialSchedule: TrialSchedule = normalizeTrialSchedule({
     ...(defaultSchedule.slotsByWeekday[weekday] ?? []),
   ]),
   closedDates: [...defaultSchedule.closedDates],
+  dateOverrides: {},
 });
 
 /** YYYY-MM-DD の曜日（0=日曜）。実行環境のタイムゾーンに左右されないよう UTC で計算する */
@@ -76,10 +89,14 @@ function currentTimeInJapan(now: Date) {
   });
 }
 
-/** その日に受け付けている時間（予約が埋まっているかは見ない） */
+/**
+ * その日の受付時間（予約が埋まっているかは見ない）。
+ * 休講日 → その日だけの設定 → 曜日ごとの設定 の順に優先する。
+ */
 export function slotsForDate(schedule: TrialSchedule, dateKey: string, now = new Date()) {
   if (schedule.closedDates.includes(dateKey)) return [];
-  const slots = schedule.slotsByWeekday[weekdayOf(dateKey)] ?? [];
+  const slots =
+    schedule.dateOverrides[dateKey] ?? schedule.slotsByWeekday[weekdayOf(dateKey)] ?? [];
   // 当日も受け付ける設定のとき、すでに過ぎた時間は選べないようにする
   if (dateKey === todayInJapan(now)) {
     const currentTime = currentTimeInJapan(now);
