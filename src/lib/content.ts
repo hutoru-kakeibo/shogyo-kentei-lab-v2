@@ -14,6 +14,17 @@ export const siteMeta = {
   url: "https://shogyo-kentei-lab-academy.com",
   /** OGP・Twitterカードで使う画像（1200x630） */
   ogImage: "/images/og.png",
+  /** トップページの <title>。検索でよく使われる「全商検定」を入れている */
+  title: "商業検定ラボ｜全商検定対策のオンライン個別指導塾",
+};
+
+/**
+ * 検定ページの <title> に使う、検索されやすい呼び名。
+ * 載っていない検定は「全商」＋検定名（例：全商簿記実務検定）になる。
+ * 英語検定は実用英検と区別がつくよう、通称の「全商英検」を前に出す。
+ */
+export const subjectSearchNames: Record<string, string> = {
+  "zensho-eiken": "全商英検（英語検定）",
 };
 
 /**

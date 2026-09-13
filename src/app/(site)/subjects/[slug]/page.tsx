@@ -7,7 +7,7 @@ import { subjects, type SubjectTone } from "@/lib/subjects";
 import { getSubjectData } from "@/lib/subjects-data";
 import { flow, siteMeta } from "@/lib/content";
 import { BreadcrumbJsonLd, CourseJsonLd } from "@/components/seo/JsonLd";
-import { withDefaultOpenGraph } from "@/lib/seo";
+import { subjectSearchName, withDefaultOpenGraph } from "@/lib/seo";
 
 // 管理画面から編集した内容を、再ビルドなしで反映するため5分ごとに作り直す
 export const revalidate = 300;
@@ -46,7 +46,7 @@ export async function generateMetadata({
 
   if (!subject) return {};
 
-  const title = `${subject.name}の対策`;
+  const title = `${subjectSearchName(subject)}の対策・勉強法`;
   const description = `${subject.fullName}の出題範囲・級構成と、${siteMeta.name}での対策内容を紹介します。${subject.catchCopy}`;
 
   return {
@@ -81,7 +81,7 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
   return (
     <main>
       <CourseJsonLd
-        name={`${subject.name}の対策講座`}
+        name={`${subjectSearchName(subject)}の対策講座`}
         description={`${subject.fullName}の対策を1対1のオンライン個別指導で行います。${subject.catchCopy}`}
         url={`${siteMeta.url}/subjects/${slug}`}
       />

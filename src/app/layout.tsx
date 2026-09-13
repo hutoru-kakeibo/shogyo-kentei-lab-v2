@@ -5,7 +5,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(siteMeta.url),
   title: {
-    default: `${siteMeta.name}｜${siteMeta.tagline}`,
+    default: siteMeta.title,
     template: `%s｜${siteMeta.name}`,
   },
   description: siteMeta.description,
@@ -27,20 +27,20 @@ export const metadata: Metadata = {
     locale: "ja_JP",
     url: siteMeta.url,
     siteName: siteMeta.name,
-    title: `${siteMeta.name}｜${siteMeta.tagline}`,
+    title: siteMeta.title,
     description: siteMeta.description,
     images: [
       {
         url: siteMeta.ogImage,
         width: 1200,
         height: 630,
-        alt: `${siteMeta.name}｜${siteMeta.tagline}`,
+        alt: siteMeta.title,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteMeta.name}｜${siteMeta.tagline}`,
+    title: siteMeta.title,
     description: siteMeta.description,
     images: [siteMeta.ogImage],
   },
