@@ -98,7 +98,7 @@ export function Teachers() {
                 {/* 自己紹介 */}
                 <div>
                   <FieldLabel tone={teacher.tone}>{teachers.labels.intro}</FieldLabel>
-                  <dd className="mt-1.5 rounded-2xl bg-white p-4 text-[13px] leading-relaxed text-ink-muted shadow-sm">
+                  <dd className="mt-1.5 whitespace-pre-line rounded-2xl bg-white p-4 text-[13px] leading-relaxed text-ink-muted shadow-sm">
                     {teacher.intro}
                   </dd>
                 </div>
