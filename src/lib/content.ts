@@ -254,13 +254,13 @@ export const courseSearch = {
     {
       name: "全商検定",
       items: [
-        { name: "簿記実務検定", href: "/subjects/zensho-boki", ready: false },
-        { name: "情報処理検定（ビジネス情報）", href: "/subjects/business-joho", ready: false },
-        { name: "情報処理検定（プログラミング）", href: "/subjects/programming", ready: false },
+        { name: "簿記実務検定", href: "/subjects/zensho-boki", ready: true },
+        { name: "情報処理検定（ビジネス情報）", href: "/subjects/business-joho", ready: true },
+        { name: "情報処理検定（プログラミング）", href: "/subjects/programming", ready: true },
         { name: "英語検定", href: "/subjects/zensho-eiken", ready: true },
-        { name: "ビジネス文書実務検定", href: "/subjects/bunsho-sakusei", ready: false },
+        { name: "ビジネス文書実務検定", href: "/subjects/bunsho-sakusei", ready: true },
         { name: "商業経済検定", href: "/subjects/shogyo-keizai", ready: false },
-        { name: "珠算・電卓実務検定", href: "/subjects/dentaku-jitsumu", ready: false },
+        { name: "珠算・電卓実務検定", href: "/subjects/dentaku-jitsumu", ready: true },
         { name: "財務諸表分析", href: "/subjects/zaimu-shohyo-bunseki", ready: false },
       ],
     },
