@@ -235,7 +235,7 @@ export const teachers = {
       tone: "sky",
       imageLabel: "阪井たくみ（英語顧問・講師）の写真",
       photo: "/images/teacher-s.jpg" as string | null,
-      school: "○○県立○○商業高等学校 卒業",
+      school: "佐久長聖高校",
       qualifications: ["共通テスト英語満点","TOEIC790スコア"],
       intro:
         "検定は進学・就職でそのまま武器になります。合格のその先まで見据えて、志望理由書や面接の相談にも乗ります。",
