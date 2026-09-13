@@ -2,13 +2,14 @@ import type { MetadataRoute } from "next";
 import { siteMeta } from "@/lib/content";
 import { subjects } from "@/lib/subjects";
 import { getArticleSummaries } from "@/lib/articles";
+import { isSubjectPublished } from "@/lib/seo";
 
 // 管理画面で保存したときにも即時更新されるが、念のため1時間ごとにも作り直す
 export const revalidate = 3600;
 
 /**
  * 検索エンジンに知らせるURL一覧（/sitemap.xml）。
- * 管理画面とログインは noindex なのでここには載せない。
+ * 管理画面とログイン、準備中の検定ページは載せない。
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
@@ -28,12 +29,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     { url: `${siteMeta.url}/news`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
-    ...subjects.map((subject) => ({
-      url: `${siteMeta.url}/subjects/${subject.slug}`,
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.8,
-    })),
+    ...subjects
+      .filter((subject) => isSubjectPublished(subject.slug))
+      .map((subject) => ({
+        url: `${siteMeta.url}/subjects/${subject.slug}`,
+        lastModified: now,
+        changeFrequency: "monthly" as const,
+        priority: 0.8,
+      })),
     ...articles.map((article) => ({
       url: `${siteMeta.url}/columns/${article.slug}`,
       lastModified: new Date(article.updatedAt),

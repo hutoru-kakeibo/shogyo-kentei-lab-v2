@@ -7,7 +7,7 @@ import { subjects, type SubjectTone } from "@/lib/subjects";
 import { getSubjectData } from "@/lib/subjects-data";
 import { flow, siteMeta } from "@/lib/content";
 import { BreadcrumbJsonLd, CourseJsonLd } from "@/components/seo/JsonLd";
-import { subjectSearchName, withDefaultOpenGraph } from "@/lib/seo";
+import { isSubjectPublished, subjectSearchName, withDefaultOpenGraph } from "@/lib/seo";
 
 // 管理画面から編集した内容を、再ビルドなしで反映するため5分ごとに作り直す
 export const revalidate = 300;
@@ -53,6 +53,9 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical: `/subjects/${slug}` },
+    // 準備中（「検定を探す」からリンクしていない）の間は検索結果に載せない。
+    // 公開済みのページでは robots を指定せず、ルートレイアウトの index, follow を引き継ぐ
+    ...(isSubjectPublished(slug) ? {} : { robots: { index: false, follow: false } }),
     openGraph: withDefaultOpenGraph({
       title: `${title}｜${siteMeta.name}`,
       description,
