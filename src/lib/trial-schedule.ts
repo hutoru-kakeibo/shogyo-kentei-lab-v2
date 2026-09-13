@@ -66,10 +66,26 @@ export function bookableRange(schedule: TrialSchedule, today = todayInJapan()) {
   };
 }
 
+/** 日本時間の現在時刻（HH:mm） */
+function currentTimeInJapan(now: Date) {
+  return now.toLocaleTimeString("sv-SE", {
+    timeZone: "Asia/Tokyo",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
+}
+
 /** その日に受け付けている時間（予約が埋まっているかは見ない） */
-export function slotsForDate(schedule: TrialSchedule, dateKey: string) {
+export function slotsForDate(schedule: TrialSchedule, dateKey: string, now = new Date()) {
   if (schedule.closedDates.includes(dateKey)) return [];
-  return schedule.slotsByWeekday[weekdayOf(dateKey)] ?? [];
+  const slots = schedule.slotsByWeekday[weekdayOf(dateKey)] ?? [];
+  // 当日も受け付ける設定のとき、すでに過ぎた時間は選べないようにする
+  if (dateKey === todayInJapan(now)) {
+    const currentTime = currentTimeInJapan(now);
+    return slots.filter((slot) => slot > currentTime);
+  }
+  return slots;
 }
 
 /** その日時が受付対象か（予約が埋まっているかは見ない） */
