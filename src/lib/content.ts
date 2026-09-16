@@ -253,7 +253,7 @@ export const teachers = {
       name: "阪井たくみ（英語顧問・講師）",
       tone: "sky",
       imageLabel: "阪井たくみ（英語顧問・講師）の写真",
-      photo: "/images/teacher-s.jpg" as string | null,
+      photo: "/images/teacher-takumi.jpg" as string | null,
       school: "佐久長聖高校→立命館大学",
       qualifications: ["共通テスト英語満点","TOEIC790スコア"],
       intro:
