@@ -474,6 +474,14 @@ export const adminTrialSettings = {
     listTitle: "この日だけの設定をしている日",
     listEmpty: "まだありません。",
     removeTimeLabel: "を外す",
+    legendBooked: "予約が入っている日",
+    bookedLabel: "予約あり",
+    bookedCountSuffix: "件",
+    bookedSummaryPrefix: "予約が入っている時間：",
+    bookedHint:
+      "（水色の時間は、申し込みをキャンセルするまで受付時間を変更できません。キャンセルは「申し込み（無料体験・授業）」から行えます）",
+    bookedOnClosedWarning:
+      "（休講日にしても、入っている申し込みは取り消されません。「申し込み（無料体験・授業）」から個別に対応してください）",
     removeOverrideLabel: "の設定を削除して曜日の設定に戻す",
     errorFormat: "日ごとの受付時間の形式が正しくありません",
     notSetUp:

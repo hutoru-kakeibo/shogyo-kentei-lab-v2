@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CircleAlert, CircleCheck, Plus, X } from "lucide-react";
 import { adminTrialSettings } from "@/lib/content";
 import { updateTrialSettings } from "@/lib/admin/trial-settings-actions";
+import type { TakenSlots } from "@/lib/trial-actions";
 import {
   DATE_PATTERN,
   TIME_PATTERN,
@@ -34,7 +35,14 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function TrialSettingsForm({ initial }: { initial: TrialSchedule }) {
+export function TrialSettingsForm({
+  initial,
+  takenSlots,
+}: {
+  initial: TrialSchedule;
+  /** すでに申し込みが入っている日時（日ごとの受付時間カレンダーに表示する） */
+  takenSlots: TakenSlots;
+}) {
   const router = useRouter();
   const [leadDays, setLeadDays] = useState(String(initial.leadDays));
   const [rangeDays, setRangeDays] = useState(String(initial.rangeDays));
@@ -301,6 +309,7 @@ export function TrialSettingsForm({ initial }: { initial: TrialSchedule }) {
           slotsByWeekday={slotsByWeekday}
           dateOverrides={dateOverrides}
           closedDates={closedDates}
+          takenSlots={takenSlots}
           onDateOverridesChange={updateDateOverrides}
           onClosedDatesChange={updateClosedDates}
         />

@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { Ban, ChevronLeft, ChevronRight, Plus, RotateCcw, X } from "lucide-react";
 import { adminTrialSettings, trialForm } from "@/lib/content";
+import type { TakenSlots } from "@/lib/trial-actions";
 import { TIME_PATTERN, addDaysToKey, weekdayOf } from "@/lib/trial-schedule";
 
 const { dateOverrideEditor: copy, presetTimes, weekdayNames } = adminTrialSettings;
 const shortWeekdays = trialForm.schedule.weekdayNames;
 
-/** 今日から何日先まで、日ごとの設定を作れるようにするか */
+/** 今日から何日先まで、日ごとの設定を作れるようにするか（管理ページの予約取得期間と揃える） */
 const EDITABLE_DAYS = 365;
 
 function toKey(year: number, monthIndex: number, day: number) {
@@ -37,6 +38,8 @@ type Props = {
   slotsByWeekday: string[][];
   dateOverrides: Record<string, string[]>;
   closedDates: string[];
+  /** すでに申し込みが入っている日時（生徒側のカレンダーと同じデータ） */
+  takenSlots: TakenSlots;
   onDateOverridesChange: (next: Record<string, string[]>) => void;
   onClosedDatesChange: (next: string[]) => void;
 };
@@ -47,6 +50,7 @@ export function TrialDateOverridesEditor({
   slotsByWeekday,
   dateOverrides,
   closedDates,
+  takenSlots,
   onDateOverridesChange,
   onClosedDatesChange,
 }: Props) {
@@ -82,12 +86,15 @@ export function TrialDateOverridesEditor({
   const override = selectedDate ? dateOverrides[selectedDate] : undefined;
   const weekdaySlots = selectedDate ? (slotsByWeekday[weekdayOf(selectedDate)] ?? []) : [];
   const selectedSlots = override ?? weekdaySlots;
-  const extraSlots = selectedSlots.filter(
-    (slot) => !(presetTimes as readonly string[]).includes(slot),
-  );
+  const bookedTimes = selectedDate ? (takenSlots[selectedDate] ?? []) : [];
+  // 一覧にない時間で、受付中または予約済みのもの（予約済みは受付時間から外れていても表示する）
+  const extraTimes = [...new Set([...selectedSlots, ...bookedTimes])]
+    .filter((time) => !(presetTimes as readonly string[]).includes(time))
+    .sort();
 
   const toggleTime = (time: string) => {
-    if (!selectedDate) return;
+    // 予約が入っている時間は、申し込みをキャンセルするまで変更できない
+    if (!selectedDate || bookedTimes.includes(time)) return;
     setOverride(
       selectedDate,
       selectedSlots.includes(time)
@@ -115,6 +122,14 @@ export function TrialDateOverridesEditor({
   };
 
   const overrideEntries = Object.entries(dateOverrides).sort(([a], [b]) => a.localeCompare(b));
+
+  /** 時間ボタン（プリセット・追加分で共通） */
+  const timeButtonClass = (time: string) => {
+    if (bookedTimes.includes(time)) return "cursor-not-allowed bg-sky-100 text-sky-600 ring-1 ring-sky-300";
+    return selectedSlots.includes(time)
+      ? "bg-sakura-500 text-white shadow-sm"
+      : "bg-white text-ink-muted ring-1 ring-sakura-100";
+  };
 
   return (
     <div className="space-y-4">
@@ -167,6 +182,7 @@ export function TrialDateOverridesEditor({
             const disabled = key < today || key > lastEditableDate;
             const dayClosed = closedDates.includes(key);
             const dayOverride = dateOverrides[key];
+            const bookedCount = takenSlots[key]?.length ?? 0;
             const count = dayClosed
               ? 0
               : (dayOverride ?? slotsByWeekday[weekdayOf(key)] ?? []).length;
@@ -190,21 +206,30 @@ export function TrialDateOverridesEditor({
                 ? `${count}${copy.slotSuffix}`
                 : "";
 
+            const statusLabels = [
+              dayClosed ? copy.statusClosed : dayOverride ? copy.statusOverride : "",
+              bookedCount > 0 ? `${copy.bookedLabel}${bookedCount}${copy.bookedCountSuffix}` : "",
+            ].filter(Boolean);
+
             return (
               <button
                 key={key}
                 type="button"
                 disabled={disabled}
                 aria-pressed={isSelected}
-                aria-label={`${formatDateLabel(key)} ${
-                  dayClosed ? copy.statusClosed : dayOverride ? copy.statusOverride : ""
-                }`}
+                aria-label={`${formatDateLabel(key)} ${statusLabels.join(" ")}`}
                 onClick={() => selectDate(key)}
-                className={`flex aspect-square flex-col items-center justify-center rounded-xl text-[13px] font-bold leading-none transition ${stateClass}`}
+                className={`relative flex aspect-square flex-col items-center justify-center rounded-xl text-[13px] font-bold leading-none transition ${stateClass}`}
               >
                 {index + 1}
                 {subLabel && !disabled ? (
                   <span className="mt-0.5 text-[9px] font-bold leading-none">{subLabel}</span>
+                ) : null}
+                {bookedCount > 0 && !disabled ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-1 top-1 size-2 rounded-full bg-sky-500 ring-2 ring-white"
+                  />
                 ) : null}
               </button>
             );
@@ -219,6 +244,10 @@ export function TrialDateOverridesEditor({
           <span className="flex items-center gap-1.5">
             <span className="size-3 rounded bg-ink-muted/10" />
             {copy.legendClosed}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full bg-sky-500" />
+            {copy.legendBooked}
           </span>
         </div>
       </div>
@@ -245,6 +274,14 @@ export function TrialDateOverridesEditor({
             </span>
           </div>
 
+          {bookedTimes.length > 0 ? (
+            <p className="mt-3 rounded-xl bg-sky-50 p-3 text-[12px] font-bold leading-relaxed text-sky-600 ring-1 ring-sky-100">
+              {copy.bookedSummaryPrefix}
+              {[...bookedTimes].sort().join("・")}
+              {isClosed ? ` ${copy.bookedOnClosedWarning}` : ` ${copy.bookedHint}`}
+            </p>
+          ) : null}
+
           {isClosed ? (
             <>
               <p className="mt-3 text-[13px] leading-relaxed text-ink-muted">{copy.closedMessage}</p>
@@ -263,39 +300,48 @@ export function TrialDateOverridesEditor({
 
               <div className="mt-3 grid grid-cols-4 gap-1.5 sm:grid-cols-7">
                 {presetTimes.map((presetTime) => {
-                  const active = selectedSlots.includes(presetTime);
+                  const booked = bookedTimes.includes(presetTime);
                   return (
                     <button
                       key={presetTime}
                       type="button"
-                      aria-pressed={active}
+                      aria-pressed={booked ? undefined : selectedSlots.includes(presetTime)}
+                      aria-disabled={booked || undefined}
+                      title={booked ? copy.bookedLabel : undefined}
                       onClick={() => toggleTime(presetTime)}
-                      className={`rounded-lg py-2 text-[13px] font-bold transition ${
-                        active
-                          ? "bg-sakura-500 text-white shadow-sm"
-                          : "bg-white text-ink-muted ring-1 ring-sakura-100"
-                      }`}
+                      className={`flex flex-col items-center rounded-lg py-1.5 text-[13px] font-bold transition ${timeButtonClass(presetTime)}`}
                     >
                       {presetTime}
+                      {booked ? (
+                        <span className="text-[9px] leading-tight">{copy.bookedLabel}</span>
+                      ) : null}
                     </button>
                   );
                 })}
               </div>
 
-              {extraSlots.length > 0 ? (
+              {extraTimes.length > 0 ? (
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  {extraSlots.map((slot) => (
-                    <button
-                      key={slot}
-                      type="button"
-                      onClick={() => toggleTime(slot)}
-                      aria-label={`${slot} ${copy.removeTimeLabel}`}
-                      className="flex items-center gap-1 rounded-lg bg-sakura-500 px-2.5 py-1.5 text-[13px] font-bold text-white"
-                    >
-                      {slot}
-                      <X className="size-3.5" strokeWidth={3} />
-                    </button>
-                  ))}
+                  {extraTimes.map((time) => {
+                    const booked = bookedTimes.includes(time);
+                    return (
+                      <button
+                        key={time}
+                        type="button"
+                        onClick={() => toggleTime(time)}
+                        aria-disabled={booked || undefined}
+                        aria-label={booked ? `${time} ${copy.bookedLabel}` : `${time} ${copy.removeTimeLabel}`}
+                        className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[13px] font-bold ${timeButtonClass(time)}`}
+                      >
+                        {time}
+                        {booked ? (
+                          <span className="text-[10px]">{copy.bookedLabel}</span>
+                        ) : (
+                          <X className="size-3.5" strokeWidth={3} />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : null}
 
