@@ -1,4 +1,4 @@
-import { about, faq, siteMeta } from "@/lib/content";
+import { about, faq, siteMeta, socialLinks } from "@/lib/content";
 
 /**
  * 構造化データ（JSON-LD）。
@@ -34,6 +34,8 @@ export function OrganizationJsonLd() {
         url: siteMeta.url,
         image: `${siteMeta.url}${siteMeta.ogImage}`,
         description: siteMeta.description,
+        // 公式SNSを知らせて、検索結果の運営者情報とひもづける
+        sameAs: socialLinks.map((link) => link.url),
         // 肩書きつきの表示名から「（塾長）」を落として人名だけにする
         founder: { "@type": "Person", name: about.founder.name.replace(/（.*）/, "") },
         areaServed: { "@type": "Country", name: "日本" },

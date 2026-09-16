@@ -19,6 +19,14 @@ export const siteMeta = {
 };
 
 /**
+ * 公式SNSなど、この塾の公式アカウント。
+ * 構造化データの sameAs に載せて、検索エンジンに「同じ運営者のアカウント」だと伝える。
+ */
+export const socialLinks = [
+  { name: "Instagram", url: "https://www.instagram.com/moritatomonobu" },
+];
+
+/**
  * 検定ページの <title> に使う、検索されやすい呼び名。
  * 載っていない検定は「全商」＋検定名（例：全商簿記実務検定）になる。
  * 英語検定は実用英検と区別がつくよう、通称の「全商英検」を前に出す。
