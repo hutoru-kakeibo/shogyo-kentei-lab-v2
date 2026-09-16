@@ -3,8 +3,12 @@
 import { getSupabaseClient } from "@/lib/supabase";
 import { sendTrialMails } from "@/lib/emails";
 import { trialForm } from "@/lib/content";
+import { isValidLessonToken } from "@/lib/lesson-token";
 import { isBookable, type TrialSchedule } from "@/lib/trial-schedule";
 import { loadTrialSchedule } from "@/lib/trial-schedule-data";
+
+/** 申し込みの種別。無料体験と、既存生徒の授業 */
+export type ApplicationKind = "trial" | "lesson";
 
 export type TrialApplicationInput = {
   subject: string;
@@ -21,6 +25,10 @@ export type TrialApplicationInput = {
   consent: boolean;
   /** ボット対策の隠し項目。人間が入力することはない */
   website: string;
+  /** 省略時は無料体験 */
+  kind?: ApplicationKind;
+  /** 授業の申し込みのときだけ必要な、ページURLの秘密のトークン */
+  lessonToken?: string;
 };
 
 export type SubmitResult = { ok: true } | { ok: false; message: string };
@@ -43,9 +51,9 @@ export async function getTrialSchedule(): Promise<TrialSchedule> {
 
 /**
  * 指定期間内で、すでに予約が入っている日時の一覧を取得する。
+ * 無料体験と授業は同じ受付枠を共有するため、種別を問わず埋まっている日時を返す。
  * 氏名・連絡先などの個人情報は含まれない（Supabase側の trial_taken_slots 関数がそう作られている）。
- * カレンダーの空き状況表示に使う。取得に失敗した場合は空を返し、カレンダー側は
- * 「制約なし」として動作を続ける（フォーム自体は使えなくならない）。
+ * 取得に失敗した場合は空を返し、カレンダー側は「制約なし」として動作を続ける。
  */
 export async function getTakenSlots(fromDate: string, toDate: string): Promise<TakenSlots> {
   const supabase = getSupabaseClient();
@@ -69,7 +77,7 @@ export async function getTakenSlots(fromDate: string, toDate: string): Promise<T
 }
 
 /**
- * 無料体験の申し込みを保存する。
+ * 無料体験・授業の申し込みを保存する。
  * ブラウザ側の検証はすり抜けられるため、サーバー側でも必須項目を確認してから書き込む。
  */
 export async function submitTrialApplication(
@@ -77,6 +85,13 @@ export async function submitTrialApplication(
 ): Promise<SubmitResult> {
   // 隠し項目が埋まっているのは自動投稿。保存せず、正常終了として返す
   if (input.website.trim()) return { ok: true };
+
+  const kind: ApplicationKind = input.kind === "lesson" ? "lesson" : "trial";
+
+  // 授業の申し込みは、既存生徒に伝えた秘密のURLからだけ受け付ける
+  if (kind === "lesson" && !isValidLessonToken(input.lessonToken ?? "")) {
+    return { ok: false, message: trialForm.errors.invalid };
+  }
 
   const filled =
     input.subject &&
@@ -117,13 +132,14 @@ export async function submitTrialApplication(
     preferred_time: input.preferredTime,
     message: input.message.trim() || null,
     consent: input.consent,
+    // 無料体験は列の既定値（trial）に任せる。kind 列の追加前でも無料体験の申し込みが止まらないようにするため
+    ...(kind === "lesson" ? { kind } : {}),
   });
 
   if (error) {
     if (error.code === UNIQUE_VIOLATION) {
       // 同じ日時にほぼ同時に別の人が申し込んだ場合、DB側の一意制約に阻まれてここに来る。
-      // クライアント側の空き状況チェックはすり抜けられる（表示後に他の人が予約する等）ため、
-      // 最終的な防波堤としてここでも必ず弾く。
+      // 無料体験と授業は同じ枠を共有するので、どちらの申し込みとも重ならないようになっている。
       return { ok: false, message: trialForm.errors.slotTaken };
     }
     console.error("[trial] 申し込みの保存に失敗しました:", error.message);
@@ -131,7 +147,7 @@ export async function submitTrialApplication(
   }
 
   // 保存は済んでいるので、メールが送れなくても申し込みは成立させる
-  await sendTrialMails(input);
+  await sendTrialMails({ ...input, kind });
 
   return { ok: true };
 }

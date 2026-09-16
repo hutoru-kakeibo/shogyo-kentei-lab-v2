@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { adminTrials } from "@/lib/content";
 import { TrialStatusBadge } from "@/components/admin/TrialStatusBadge";
+import { TrialKindBadge } from "@/components/admin/TrialKindBadge";
 import type { AdminTrialItem } from "@/lib/admin/trial-actions";
 
 /** 申し込み日時を「2026/09/11 14:30」の形にする */
@@ -33,6 +34,7 @@ export function TrialList({ items }: { items: AdminTrialItem[] }) {
                 <time className="text-xs font-bold text-ink-muted">
                   {formatCreatedAt(item.createdAt)}
                 </time>
+                <TrialKindBadge kind={item.kind} />
                 <TrialStatusBadge status={item.status} />
               </div>
               <p className="mt-1.5 truncate text-[14px] font-bold text-ink">

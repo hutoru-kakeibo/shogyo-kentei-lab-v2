@@ -378,6 +378,28 @@ export const trialForm = {
   },
 };
 
+/**
+ * 既存生徒用「授業のお申し込み」ページの文言。
+ * 項目・日時の選び方・エラー文言は trialForm と共通で、受付枠も無料体験と共有する。
+ * ページのURLは /lesson/<環境変数 LESSON_FORM_TOKEN の値>（公開リポジトリに載せないため）。
+ */
+export const lessonForm = {
+  title: "授業のお申し込み",
+  englishTitle: "LESSON",
+  lead: "在籍中の生徒さん専用の、授業のお申し込みページです。\n受講する検定と希望の日時を選んで、お申し込みください。",
+  subjectLabel: "受講する検定",
+  scheduleLabel: "授業の希望日時",
+  messageLabel: "先生に伝えたいこと",
+  messagePlaceholder: "授業で取り組みたいこと、検定日までの残り期間など",
+  submitLabel: "この内容で授業を申し込む",
+  done: {
+    title: "お申し込みありがとうございます",
+    message:
+      "内容を確認のうえ、ご記入いただいた連絡先へ授業の日時確定をご連絡します。しばらくお待ちください。",
+    backLabel: "トップページに戻る",
+  },
+} as const;
+
 /** 管理画面：無料体験の受付設定 */
 export const adminTrialSettings = {
   title: "無料体験の受付設定",
@@ -627,7 +649,7 @@ export const admin = {
     {
       id: "trials",
       href: "/admin/trials",
-      label: "無料体験の申し込み",
+      label: "申し込み（無料体験・授業）",
       description: "一覧の確認、対応状況の更新",
     },
     {
@@ -687,8 +709,13 @@ export const adminNews = {
 
 /** 管理画面：無料体験の申し込み */
 export const adminTrials = {
-  title: "無料体験の申し込み",
+  title: "申し込み（無料体験・授業）",
   emptyMessage: "まだ申し込みがありません。",
+  /** kind カラムの値と、画面上の表示・バッジ色の対応 */
+  kindOptions: [
+    { value: "trial", label: "無料体験", badgeClass: "bg-sky-100 text-sky-600" },
+    { value: "lesson", label: "授業", badgeClass: "bg-lemon-200 text-ink" },
+  ] as const,
   backLabel: "一覧に戻る",
   statusLabel: "対応状況",
   /** status カラムの値と、画面上の表示・バッジ色の対応 */
@@ -700,7 +727,8 @@ export const adminTrials = {
   ] as const,
   /** 詳細画面の項目ラベル */
   fields: {
-    subject: "受けたい検定",
+    kind: "種別",
+    subject: "検定",
     targetGrade: "受験予定の級",
     name: "お名前",
     kana: "ふりがな",
@@ -709,7 +737,7 @@ export const adminTrials = {
     email: "メールアドレス",
     tel: "電話番号",
     preferred: "希望日時",
-    message: "相談したいこと",
+    message: "相談・伝えたいこと",
     createdAt: "申し込み日時",
   },
   noMessage: "（記入なし）",

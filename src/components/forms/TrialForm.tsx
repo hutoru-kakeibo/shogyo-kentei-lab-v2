@@ -4,8 +4,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 import { CircleAlert, CircleCheck, Send } from "lucide-react";
-import { courseSearch, trialForm } from "@/lib/content";
-import { submitTrialApplication } from "@/lib/trial-actions";
+import { courseSearch, lessonForm, trialForm } from "@/lib/content";
+import { submitTrialApplication, type ApplicationKind } from "@/lib/trial-actions";
 
 // 「今日」を基準にカレンダーを組み立てるため、サーバー側では描画しない（表示ズレ防止）
 const TrialDateTimePicker = dynamic(
@@ -51,6 +51,26 @@ const initialValues: Values = {
   website: "",
 };
 
+/** 無料体験と授業で変わる文言。それ以外の項目・エラー文言は共通 */
+const copyByKind = {
+  trial: {
+    subjectLabel: "受けたい検定",
+    scheduleLabel: trialForm.schedule.label,
+    messageLabel: "相談したいこと",
+    messagePlaceholder: "つまずいているところ、検定日までの残り期間など",
+    submitLabel: trialForm.submitLabel,
+    done: trialForm.done,
+  },
+  lesson: {
+    subjectLabel: lessonForm.subjectLabel,
+    scheduleLabel: lessonForm.scheduleLabel,
+    messageLabel: lessonForm.messageLabel,
+    messagePlaceholder: lessonForm.messagePlaceholder,
+    submitLabel: lessonForm.submitLabel,
+    done: lessonForm.done,
+  },
+} as const;
+
 /** 検定の選択肢は「検定を探す」の一覧から生成する */
 const subjectOptions = [
   ...courseSearch.categories.flatMap((category) => category.items.map((item) => item.name)),
@@ -92,7 +112,15 @@ function ErrorText({ id, message }: { id: string; message?: string }) {
   );
 }
 
-export function TrialForm() {
+type Props = {
+  /** 無料体験（既定）か、既存生徒の授業か */
+  kind?: ApplicationKind;
+  /** 授業の申し込みのときに、ページURLの秘密のトークンを渡す */
+  lessonToken?: string;
+};
+
+export function TrialForm({ kind = "trial", lessonToken }: Props) {
+  const copy = copyByKind[kind];
   const [values, setValues] = useState<Values>(initialValues);
   const [errors, setErrors] = useState<Partial<Record<keyof Values, string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -146,7 +174,7 @@ export function TrialForm() {
     setSubmitting(true);
     setSendError("");
 
-    const result = await submitTrialApplication(values);
+    const result = await submitTrialApplication({ ...values, kind, lessonToken });
 
     setSubmitting(false);
 
@@ -176,13 +204,13 @@ export function TrialForm() {
         <span className="mx-auto grid size-16 place-items-center rounded-full bg-mint-100">
           <CircleCheck className="size-9 text-mint-500" strokeWidth={2.5} />
         </span>
-        <h2 className="mt-4 font-round text-xl font-bold text-ink">{trialForm.done.title}</h2>
-        <p className="mt-3 text-[13px] leading-relaxed text-ink-muted">{trialForm.done.message}</p>
+        <h2 className="mt-4 font-round text-xl font-bold text-ink">{copy.done.title}</h2>
+        <p className="mt-3 text-[13px] leading-relaxed text-ink-muted">{copy.done.message}</p>
         <Link
           href="/"
           className="mt-6 inline-flex items-center rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-6 py-3 font-round text-[15px] font-bold text-white shadow-lg shadow-sakura-600/30"
         >
-          {trialForm.done.backLabel}
+          {copy.done.backLabel}
         </Link>
       </div>
     );
@@ -190,9 +218,9 @@ export function TrialForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
-      {/* 受けたい検定 */}
+      {/* 受けたい（受講する）検定 */}
       <div>
-        <FieldLabel htmlFor="subject" label="受けたい検定" required />
+        <FieldLabel htmlFor="subject" label={copy.subjectLabel} required />
         <select
           id="subject"
           value={values.subject}
@@ -334,7 +362,7 @@ export function TrialForm() {
 
       {/* 希望日時 */}
       <div>
-        <FieldLabel htmlFor="preferredDate" label={trialForm.schedule.label} required />
+        <FieldLabel htmlFor="preferredDate" label={copy.scheduleLabel} required />
         <div id="preferredDate">
           <TrialDateTimePicker
             key={pickerKey}
@@ -348,13 +376,13 @@ export function TrialForm() {
         </div>
       </div>
 
-      {/* 相談したいこと */}
+      {/* 相談したいこと／先生に伝えたいこと */}
       <div>
-        <FieldLabel htmlFor="message" label="相談したいこと" />
+        <FieldLabel htmlFor="message" label={copy.messageLabel} />
         <textarea
           id="message"
           rows={4}
-          placeholder="つまずいているところ、検定日までの残り期間など"
+          placeholder={copy.messagePlaceholder}
           value={values.message}
           onChange={(event) => update("message", event.target.value)}
           className={`${inputClass} resize-y`}
@@ -404,7 +432,7 @@ export function TrialForm() {
         disabled={submitting}
         className="flex w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-8 py-4 font-round text-base font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5 disabled:opacity-60"
       >
-        {submitting ? trialForm.submittingLabel : trialForm.submitLabel}
+        {submitting ? trialForm.submittingLabel : copy.submitLabel}
         {submitting ? null : <Send className="size-5" strokeWidth={2.5} />}
       </button>
     </form>

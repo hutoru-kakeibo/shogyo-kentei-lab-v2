@@ -2,11 +2,13 @@
 
 import { createAuthClient, isCurrentUserAdmin } from "@/lib/auth/server";
 import { adminTrials } from "@/lib/content";
+import type { ApplicationKind } from "@/lib/trial-actions";
 
 export type TrialStatus = (typeof adminTrials.statusOptions)[number]["value"];
 
 export type AdminTrialItem = {
   id: string;
+  kind: ApplicationKind;
   subject: string;
   targetGrade: string;
   name: string;
@@ -25,6 +27,8 @@ export type AdminTrialItem = {
 /** Supabase の trial_applications テーブルの1行 */
 type TrialRow = {
   id: string;
+  /** trial_applications_kind.sql 実行前の環境では存在しない */
+  kind?: string;
   subject: string;
   target_grade: string;
   name: string;
@@ -43,6 +47,7 @@ type TrialRow = {
 function toAdminItem(row: TrialRow): AdminTrialItem {
   return {
     id: row.id,
+    kind: row.kind === "lesson" ? "lesson" : "trial",
     subject: row.subject,
     targetGrade: row.target_grade,
     name: row.name,
@@ -62,11 +67,9 @@ function toAdminItem(row: TrialRow): AdminTrialItem {
   };
 }
 
-const columns =
-  "id, subject, target_grade, name, kana, grade_year, school, email, tel, preferred_date, preferred_time, message, status, created_at";
-
 /**
  * 申し込み一覧を、新しい順に取得する。
+ * kind 列の追加前でも一覧が壊れないよう、列を指定せずに読む。
  * RLS（is_admin()）で保護されているため、管理者としてログインしていなければ何も返らない。
  */
 export async function listTrialsForAdmin(): Promise<AdminTrialItem[]> {
@@ -75,7 +78,7 @@ export async function listTrialsForAdmin(): Promise<AdminTrialItem[]> {
 
   const { data, error } = await supabase
     .from("trial_applications")
-    .select(columns)
+    .select("*")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -93,7 +96,7 @@ export async function getTrialForAdmin(id: string): Promise<AdminTrialItem | nul
 
   const { data, error } = await supabase
     .from("trial_applications")
-    .select(columns)
+    .select("*")
     .eq("id", id)
     .maybeSingle();
 
