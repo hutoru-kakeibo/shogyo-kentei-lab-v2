@@ -209,14 +209,16 @@ export function VoiceCarousel({ items }: { items: VoiceItem[] }) {
               </div>
             </div>
 
-            {/* 塾の推しポイント（2行まで） */}
-            <div className="mt-3">
-              <RecommendPoint
-                label={labels.recommendPoint}
-                value={current.recommendPoint}
-                tone={current.tone}
-              />
-            </div>
+            {/* 塾の推しポイント（2行まで）。まだ聞けていない生徒は欄ごと出さない */}
+            {current.recommendPoint.trim() ? (
+              <div className="mt-3">
+                <RecommendPoint
+                  label={labels.recommendPoint}
+                  value={current.recommendPoint}
+                  tone={current.tone}
+                />
+              </div>
+            ) : null}
           </div>
         </div>
 

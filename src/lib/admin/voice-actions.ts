@@ -88,7 +88,6 @@ function validate(input: VoiceFormInput): string | null {
     input.mockBestScore,
     input.totalDays,
     input.mockCount,
-    input.recommendPoint,
   ];
   if (required.some((value) => !value.trim())) return adminVoices.errors.required;
   return null;
