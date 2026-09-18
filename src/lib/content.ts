@@ -510,8 +510,6 @@ export const voice = {
   title: "合格者の声",
   englishTitle: "VOICE",
   lead: "商業検定ラボで学んだ先輩たちの学習記録です。",
-  prevLabel: "前の声",
-  nextLabel: "次の声",
   /** 合格体験記が1件も無いときの文言 */
   emptyMessage: "現在、合格体験記を準備中です。",
   /** 学習実績テーブルの項目ラベル */
