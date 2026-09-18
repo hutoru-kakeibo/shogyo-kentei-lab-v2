@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { Sparkles } from "lucide-react";
 import { voice } from "@/lib/content";
 import type { VoiceItem } from "@/lib/voice";
 import { ImagePlaceholder, type PlaceholderTone } from "@/components/ui/ImagePlaceholder";
+
+/** これ以上横に動かしたらスワイプとみなす距離（px） */
+const SWIPE_THRESHOLD = 40;
 
 const dotTone: Record<PlaceholderTone, string> = {
   sakura: "bg-sakura-500",
@@ -95,20 +98,50 @@ function RecommendPoint({
 
 export function VoiceCarousel({ items }: { items: VoiceItem[] }) {
   const [index, setIndex] = useState(0);
+  // 指を置いた位置。スワイプの向きと距離を判定するために使う
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
   const { labels } = voice;
   const current = items[index];
-  // 声が1件しかない間は、ドットを出さずカードだけを表示する
+  // 声が1件しかない間は、ドットを出さず、スワイプもしない
   const hasMultiple = items.length > 1;
+
+  /** 前後の声へ移る。端まで行ったら反対側に戻る */
+  const go = (delta: number) => {
+    setIndex((prev) => (prev + delta + items.length) % items.length);
+  };
+
+  const handleTouchStart = (event: React.TouchEvent) => {
+    const touch = event.touches[0];
+    touchStart.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent) => {
+    const start = touchStart.current;
+    touchStart.current = null;
+    if (!start || !hasMultiple) return;
+
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    // 縦スクロールのついでに少し横にずれただけでは切り替えない
+    if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dx) <= Math.abs(dy)) return;
+
+    // 左へスワイプで次、右へスワイプで前
+    go(dx < 0 ? 1 : -1);
+  };
 
   if (!current) return null;
 
   return (
     <>
       {/* 合格体験記カード：ノートの表紙をイメージした方眼紙背景＋リング留め。
-          スマホの幅を使い切れるよう、左右に矢印は置かず、切り替えは下のドットで行う */}
+          スマホの幅を使い切れるよう、左右に矢印は置かず、切り替えは指のスワイプと下のドットで行う。
+          touch-pan-y で縦スクロールはブラウザに任せ、横の動きだけをスワイプとして受け取る */}
       <div
         aria-live="polite"
-        className={`relative mt-8 overflow-hidden rounded-[1.5rem] border-[3px] bg-white pr-4 shadow-md shadow-sakura-600/10 ${borderTone[current.tone]}`}
+        onTouchStart={hasMultiple ? handleTouchStart : undefined}
+        onTouchEnd={hasMultiple ? handleTouchEnd : undefined}
+        className={`relative mt-8 touch-pan-y select-none overflow-hidden rounded-[1.5rem] border-[3px] bg-white pr-4 shadow-md shadow-sakura-600/10 ${borderTone[current.tone]}`}
       >
         {/* 方眼紙の背景パターン */}
         <div
@@ -154,6 +187,7 @@ export function VoiceCarousel({ items }: { items: VoiceItem[] }) {
                   fill
                   sizes="56px"
                   className="object-cover"
+                  draggable={false}
                 />
               </div>
             ) : (
@@ -201,7 +235,7 @@ export function VoiceCarousel({ items }: { items: VoiceItem[] }) {
       </div>
 
       {/* ドットインジケーター（声が2件以上あるときだけ表示）。
-          切り替えの唯一の操作になるので、見た目の小ささに比べてタップできる範囲を広く取っている */}
+          スワイプできない環境（パソコン）では唯一の操作になるので、見た目より広くタップできるようにしている */}
       {hasMultiple ? (
         <div className="mt-3 flex justify-center">
           {items.map((item, itemIndex) => (
