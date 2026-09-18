@@ -1,11 +1,14 @@
 # 商業検定ラボ v2 — 仕様書
 
-> このファイルはプロジェクトの現状をまとめた仕様書です。実装の詳細や作業手順は
-> [README.md](README.md)（今後作成する場合）や各ファイルのコメントを参照してください。
-> **文言・データの実体は `src/lib/content.ts` と `src/lib/subjects.ts` が唯一の情報源です。**
-> このドキュメントとコードが食い違ったら、コードを正としてこのファイルを更新してください。
+> このファイルはプロジェクトの現状をまとめた仕様書です。実装の詳細は各ファイルのコメントを参照してください。
+> **固定の文言・データは `src/lib/content.ts` が情報源です。** 新着情報・合格体験記・検定ページ・コラム・
+> 無料体験の受付設定は **Supabase（管理画面から編集）** が情報源で、`content.ts` / `subjects.ts` の値は
+> DBが使えないときのフォールバックです。このドキュメントとコードが食い違ったら、コードを正としてこのファイルを更新してください。
+>
+> ⚠️ **GitHubリポジトリは公開（public）です。** パスワード・APIキー・授業申し込みページの秘密の文字列・
+> 生徒の個人情報は、このファイルを含めリポジトリに書かないこと（`.env.local` と Vercel の環境変数だけに置く）。
 
-最終更新: 2026-09-09
+最終更新: 2026-09-18
 
 ---
 
@@ -15,14 +18,17 @@
 |---|---|
 | サイト名 | 商業検定ラボ |
 | キャッチコピー | 日本初の商業高校生専門検定塾 |
-| コンセプト | 全商検定（簿記・情報処理・英語・ビジネス文書・珠算電卓 など）に特化した、商業高校生専門のオンライン個別指導塾のLP |
+| コンセプト | 全商検定（簿記・情報処理・英語・ビジネス文書・珠算電卓 など）に特化した、商業高校生専門のオンライン個別指導塾のサイト |
 | ターゲット | 15〜18歳の商業高校生（メインは女子高生を想定） |
-| デザイン方針 | パステルピンク（sakura）＋パステルイエロー（lemon）を基調に、既存LP（下記「旧プロジェクト」）から継承したスカイブルー（sky）を第3のアクセントとして使用。レイアウトの型は「東京アカデミー」のスマホサイトを参考に模倣し、文言・データは独自 |
+| デザイン方針 | パステルピンク（sakura）＋パステルイエロー（lemon）が基調、スカイブルー（sky）とミント（mint）がアクセント。レイアウトの型は「東京アカデミー」のスマホサイトを参考にし、文言・データは独自 |
 | 技術スタック | Next.js 16（App Router / Turbopack）+ TypeScript + Tailwind CSS v4 + lucide-react |
-| バックエンド | Supabase（新着情報の取得・無料体験申し込みの保存） + Gmail（Nodemailer 経由の自動返信・通知メール） |
-| リポジトリ | **Git未初期化**。`git init` から必要 |
-| デプロイ | **未実施**。ローカル開発のみ（後述「9. 未着手・今後の課題」） |
-| 位置づけ | 旧プロジェクト（`C:\商業検定ラボ\website`、Funda簿記風デザイン）とは別に、東京アカデミー風デザインへ作り直すために新規作成したプロジェクト。旧プロジェクトのコード・コンテンツは一切引き継いでいない（データは口頭指示や旧content.tsを参考にゼロから再構成） |
+| バックエンド | Supabase（DB・認証・画像ストレージ）＋ Gmail（Nodemailer 経由の自動返信・通知メール） |
+| 本番URL | **https://shogyo-kentei-lab-academy.com**（ムームードメインで取得。`www` 付きは `www` なしへ 308 転送） |
+| リポジトリ | GitHub `hutoru-kakeibo/shogyo-kentei-lab-v2`（**public**）。`main` ブランチ |
+| デプロイ | Vercel（プロジェクト `shogyo-kentei-lab-v2`）。`main` への push で自動デプロイ |
+
+> Next.js 16 は従来と仕様が異なる点がある（例：`middleware.ts` は `proxy.ts` に改名）。実装前に
+> `node_modules/next/dist/docs/` の該当ガイドを確認すること（[AGENTS.md](AGENTS.md)）。
 
 ---
 
@@ -30,71 +36,65 @@
 
 ```
 website2/
-├── .env.local              # Supabase・Gmailの接続情報（Git管理外）
-├── .env.local.example      # ↑のひな形（Git管理あり）
-├── package.json
-├── next.config.ts          # devIndicators を無効化（ボトムナビと重ならないようにするため）
-├── scripts/                 # セットアップ・動作確認用のCLIスクリプト（後述「6. 運用スクリプト」）
-│   ├── setup-supabase.mjs
-│   ├── check-supabase.mjs
-│   ├── setup-gmail.mjs
-│   └── check-mail.mjs
-├── supabase/                 # Supabase側で実行するSQL
-│   ├── news.sql              # 新着情報テーブル
-│   └── trial_applications.sql # 無料体験申し込みテーブル
-├── public/
-│   └── images/
-│       ├── teacher-k.jpg     # 後藤もか（講師）の実写真
-│       └── teacher-m.jpg     # 森田智信（塾長）の実写真
+├── .env.local              # 接続情報・秘密の値（Git管理外）
+├── .env.local.example      # ↑のひな形（Git管理あり。値は空）
+├── next.config.ts          # devIndicators 無効化、Supabase Storage の画像を next/image で許可
+├── scripts/                # セットアップ・動作確認用のCLI（6章）
+├── supabase/               # Supabase の SQL Editor で実行するSQL（5.1）
+├── public/images/          # サイト内に置く画像（講師写真・OGP画像・STRONG POINT・合格体験記の画像など）
 └── src/
+    ├── proxy.ts            # /admin 配下でログインセッションを更新（Next.js 16 の proxy）
     ├── app/
-    │   ├── layout.tsx          # ルートレイアウト。ヘッダー・ボトムナビ・スクロールトップを常時マウント
-    │   ├── globals.css         # Tailwoindテーマ（カラーパレット・フォント変数）
-    │   ├── page.tsx             # トップページ（全セクションを並べるだけ）
-    │   ├── subjects/[slug]/page.tsx  # 検定詳細ページ（6件を静的生成）
-    │   └── trial/
-    │       ├── page.tsx        # 無料体験申し込みページ
-    │       └── actions.ts      # 申し込みのサーバーアクション（Supabase保存＋メール送信）
+    │   ├── layout.tsx      # ルート。フォント読み込み・サイト共通のメタデータ（title / OGP / robots）
+    │   ├── sitemap.ts      # /sitemap.xml（7.4）
+    │   ├── robots.ts       # /robots.txt（7.4）
+    │   ├── (site)/         # 生徒向けページ。ヘッダー・ボトムナビ・スマホ幅の枠はこの layout.tsx が持つ
+    │   │   ├── page.tsx                 # トップページ
+    │   │   ├── trial/page.tsx           # 無料体験の申し込み（4章）
+    │   │   ├── lesson/[token]/page.tsx  # 既存生徒用の授業申し込み（4.5）
+    │   │   ├── subjects/[slug]/page.tsx # 検定詳細ページ（8章）
+    │   │   ├── news/page.tsx            # 新着情報の一覧
+    │   │   └── columns/                 # コラム一覧・記事ページ（9章）
+    │   ├── login/page.tsx  # 管理者ログイン
+    │   └── admin/          # 管理画面（6章。layout.tsx で管理者以外を /login へ転送）
     ├── components/
-    │   ├── layout/              # ヘッダー・ボトムナビ・スクロールトップ（下記2.1）
-    │   ├── sections/             # トップページの各セクション（下記2.2）
-    │   ├── forms/                 # 申し込みフォーム関連（下記2.3）
-    │   └── ui/                    # 汎用UIパーツ（下記2.4）
+    │   ├── layout/         # SiteHeader / BottomNav / ScrollTopButton
+    │   ├── sections/       # トップページの各セクション（2.1）
+    │   ├── forms/          # 申し込みフォーム・日時ピッカー・ログインフォーム
+    │   ├── admin/          # 管理画面の一覧・フォーム
+    │   ├── seo/JsonLd.tsx  # 構造化データ（7.3）
+    │   └── ui/             # 汎用パーツ（ImagePlaceholder、コラム本文の表示 など）
     └── lib/
-        ├── content.ts            # 全コピー・データの単一ソース（検定詳細以外）
-        ├── subjects.ts            # 検定詳細ページ専用データ
-        ├── supabase.ts            # Supabaseクライアント（未設定なら null を返す）
-        ├── news.ts                 # 新着情報の取得ロジック（DB → 失敗時は仮データ）
-        ├── mailer.ts               # Gmail経由のメール送信（Nodemailer）
-        └── emails.ts               # 申し込み関連メールの文面
+        ├── content.ts          # 固定の文言・データ、DBのフォールバック値
+        ├── subjects.ts         # 検定詳細のフォールバックデータ（公開できる検定の一覧もここが正）
+        ├── supabase.ts         # 匿名キーのクライアント（未設定なら null）
+        ├── auth/               # Cookie でログイン状態を持つクライアント、管理者判定
+        ├── admin/*-actions.ts  # 管理画面のサーバーアクション（必ず管理者かを再確認）
+        ├── trial-actions.ts    # 申し込みの保存・受付設定と予約状況の取得
+        ├── trial-schedule.ts   # 受付日時の計算（日本時間基準。ブラウザ・サーバー共通）
+        ├── trial-schedule-data.ts # 受付設定のDB取得
+        ├── lesson-token.ts     # 授業申し込みページの秘密の文字列の照合
+        ├── emails.ts / mailer.ts  # メール文面と送信
+        ├── news.ts / voice.ts / subjects-data.ts / articles.ts # 各DBの読み取り（失敗時はフォールバック）
+        ├── article-body.ts     # コラム本文の記法の変換
+        └── seo.ts              # OGPの補完、検定ページの呼び名、公開判定
 ```
 
-### 2.1 レイアウト（`src/components/layout/`）
+### 2.1 トップページのセクション（`src/app/(site)/page.tsx` の並び順）
 
-- **SiteHeader.tsx** — 追従ヘッダー。左にロゴテキスト（「商業検定ラボ」＋タグライン）、右上の角に貼り付くピンクのハンバーガーブロック。タップで白いドロワーメニューが上から降りる（`globalNav` の9項目）
-- **BottomNav.tsx** — 画面下部固定の3CTA。**対応検定（イエロー・`/#course`）／無料体験（ピンク・`/trial`）／講師紹介（ブルー・`/#teachers`）**。ページ内アンカーは `/#...` の形にして、検定詳細ページなど下層ページからも機能するようにしている
-- **ScrollTopButton.tsx** — 400pxスクロールすると右下に現れる「トップへ戻る」丸ボタン
+1. **Hero** — 斜めに敷き詰めた画像タイル（現状プレースホルダー）、キャッチコピー「ひとりじゃないから、／全商、ぜんぶ受かる！」（ページ唯一の `h1`）、丸バッジ3つ
+2. **About**（`#about`）— 商業検定ラボとは。塾長メッセージと基本情報
+3. **StrongPoint**（`#strong-point`）— Point 1〜3。`content.ts` の `hidden: true` のポイントは非表示（現状 Point 2・3 は本格実装まで非表示）。`image` があれば写真、なければプレースホルダー
+4. **CourseSearch**（`#course`）— 検定を探す（8.3）
+5. **Flow**（`#flow`）— 受講の流れ STEP 01〜04
+6. **Teachers**（`#teachers`）— 講師紹介。講師3名とも実写真。自己紹介欄は改行（`\n`）を表示する
+7. **Voice**（`#voice`）— 合格者の声（10章）
+8. **FreeMaterials**（`#materials`）— 無料教材（全商英検対策アプリ）
+9. **Columns** — 最新コラム3件。**公開中のコラムが0件ならセクションごと表示しない**
+10. **Faq**（`#faq`）— よくある質問
+11. **News**（`#news`）— 新着情報の最新3件
 
-### 2.2 トップページのセクション（`src/components/sections/`、`page.tsx` の並び順）
-
-1. **Hero.tsx** — ファーストビュー。6枚の画像プレースホルダーを `-8deg` 回転させたグリッドで敷き詰め、斜めに切れたレイアウトを再現。中央にピンク・イエローの2段ハイライトコピー「ひとりじゃないから、／全商、ぜんぶ受かる！」、手書き風フォントで "Pass Every Test!"。写真の上に3つの丸バッジを散らす
-2. **StrongPoint.tsx** — 「イイじゃん！／商業検定ラボ／STRONG POINT」の見出し＋リード文。Point 1〜3を、円形画像に吹き出し（CSSのみ、画像なし）が食い込むデザインで縦に並べる。Point 3の下に「商業検定ラボについて →」のCTA（**リンク先の `#about` セクションは未作成**）
-3. **CourseSearch.tsx** — 「検定を探す / COURSE」。3カテゴリ（全商検定／その他の検定／進学・就職対策）のアコーディオン（初期状態は全開）。検定詳細ページが用意されている項目のみ `<Link>` 化し、未作成の項目は同じ見た目のまま非リンクにして404を防止。未開講のものには「準備中」タグ
-4. **Flow.tsx** — 「受講の流れ / FLOW」。STEP 01〜04を縦に並べたタイムライン。各カードは方眼状の薄い背景装飾＋大きな透かしアイコン＋「STEP／数字」バッジ。カード間を下向きシェブロンで接続。最後に「まずは無料で体験！」のCTA（`/trial` へ）
-5. **Teachers.tsx** — 「講師紹介 / TEACHERS」。1:1の正方形写真（`photo` が `null` ならプレースホルダー）→ 氏名 → 出身校 → 保有資格（タグ） → 自己紹介、の縦構成カードを3人分
-6. **Voice.tsx** — 「合格者の声 / VOICE」。**合格体験記カード**（1枚ずつ表示するカルーセル、左右矢印＋ドットインジケーター）。ノートの表紙をイメージした方眼紙背景＋右端のリング留め穴の装飾。中身は：見出し（マーカー線付きの「〇〇合格！」）→ 丸アバター＋一言＋氏名 → 2×2の数値マス目（合計時間／模擬最高点／合計日数／模擬試験回数）→ ハイライトボックスの「塾の推しポイント」（2行までの自由記述）
-7. **Faq.tsx** — 「よくある質問 / FAQ」。丸い「Q」バッジ＋質問文のアコーディオン（複数同時展開可）。開くと「A」バッジ付きの回答が薄いイエロー背景で表示
-8. **News.tsx** — 「新着情報 / NEWS」。**Supabaseから取得する非同期サーバーコンポーネント**（詳細は「5. バックエンド連携」）。日付＋カテゴリタグ＋タイトルのリスト、末尾に「一覧を見る →」
-
-### 2.3 フォーム（`src/components/forms/`）
-
-- **TrialForm.tsx** — 無料体験申し込みフォーム本体。詳細は「4. 無料体験申し込みフォーム」
-- **TrialDateTimePicker.tsx** — カレンダー式の日付選択＋その日の受講可能時間選択。`next/dynamic` で `ssr: false` 指定してクライアント専用読み込み（「今日」を基準にカレンダーを組むため、サーバーとの表示ズレを避ける）
-
-### 2.4 UIパーツ（`src/components/ui/`）
-
-- **ImagePlaceholder.tsx** — 写真が未用意の箇所に使う仮置きブロック。`tone`（sakura/lemon/sky/mint）ごとのパステルグラデーション＋lucideアイコン。実写真ができたら `next/image` に差し替える設計
-- **SearchSectionHeading.tsx** — 「検定を探す」で使う、虫めがねアイコン付きの見出し共通パーツ
+ハンバーガーメニュー（`globalNav`）の「コラム」は、欄が非表示のこともあるためアンカーではなく `/columns` へリンクする。
 
 ---
 
@@ -105,37 +105,36 @@ website2/
 | トークン | 役割 | 代表色 |
 |---|---|---|
 | `sakura-50〜600` | メイン1（パステルピンク） | `sakura-500` = `#fb6f9d` |
-| `lemon-50〜600` | メイン2（パステルイエロー）。**白文字は読めないため、必ず濃いインク色と組み合わせる** | `lemon-500` = `#f8c721` |
-| `sky-50〜600` | サブ（旧LPのスカイブルー `#00a2e7` を継承） | `sky-500` = `#00a2e7` |
-| `mint-100/300/500` | サブ（合格・チェックマークなど少量のポジティブ強調用） | `mint-500` = `#34c9a7` |
-| `canvas` / `surface` | 背景色（`canvas`=薄ピンク寄りの白）／カード背景（白） | — |
-| `ink` / `ink-muted` | 本文色（赤紫寄りの黒）／補助テキスト色 | — |
+| `lemon-50〜600` | メイン2（パステルイエロー）。**白文字は読めないため濃いインク色と組み合わせる** | `lemon-500` = `#f8c721` |
+| `sky-50〜600` | サブ（スカイブルー） | `sky-500` = `#00a2e7` |
+| `mint-100/300/500` | サブ（合格・チェックなどのポジティブ強調） | `mint-500` = `#34c9a7` |
+| `canvas` | 背景色（薄ピンク寄りの白） | `#fff9fb` |
+| `ink` / `ink-muted` | 本文色／補助テキスト色 | `#43304a` / `#8b7a90` |
 
-各セクション・カードは `tone: "sakura" | "lemon" | "sky" | "mint"` で色を切り替える設計を徹底しており、`Record<PlaceholderTone, string>` 形式のトーン別クラスマップをコンポーネントごとに定義するパターンが定着している（`StrongPoint.tsx`、`Flow.tsx`、`Teachers.tsx`、`Voice.tsx`、`subjects/[slug]/page.tsx` など）。
+各カード・セクションは `tone: "sakura" | "lemon" | "sky" | "mint"` で色を切り替え、`Record<PlaceholderTone, string>` 形式のトーン別クラスマップを各コンポーネントで持つのが定着したパターン。
 
 ### 3.2 タイポグラフィ
 
-- **本文**：Noto Sans JP（`font-sans`）
-- **見出し**：Zen Maru Gothic（`font-round` ユーティリティ）— 丸みのある親しみやすい書体
-- **英字の手書き風あしらい**：Caveat（`font-script` ユーティリティ）— "Pass Every Test!"、"STRONG POINT" のような英字サブタイトルに使用
-
-日本語Googleフォントは `next/font/google` の `subsets: ["japanese"]` がビルドエラーになるため、`layout.tsx` の `<head>` に手動 `<link>` している（旧プロジェクトから引き継いだ既知の回避策）。
+- 本文：Noto Sans JP（`font-sans`）／見出し：Zen Maru Gothic（`font-round`）／英字の手書き風：Caveat（`font-script`）
+- 日本語Googleフォントは `next/font/google` の `subsets: ["japanese"]` がビルドエラーになるため、`src/app/layout.tsx` の `<head>` で手動 `<link>` している
 
 ### 3.3 レイアウトの型
 
-- モバイルファースト。`max-w-[480px]` のスマホ幅コンテナを画面中央に配置
-- 見出しパターンは概ね共通：`<h2 className="font-round text-3xl font-bold ...">タイトル</h2>` → `font-script` の英字サブタイトル → リード文
-- カードは `rounded-2xl`〜`rounded-3xl` の角丸＋ `shadow-md shadow-sakura-600/10` の柔らかい影＋ `ring-1 ring-sakura-100` の薄い縁取りが基本形
+- モバイルファースト。`max-w-[480px]` のスマホ幅の枠を画面中央に置く（`(site)/layout.tsx`）
+- 見出しは「`font-round` のタイトル → `font-script` の英字 → リード文」が基本
+- カードは `rounded-2xl〜3xl` ＋ `shadow-md shadow-sakura-600/10` ＋ `ring-1 ring-sakura-100`
 
 ---
 
-## 4. 無料体験申し込みフォーム（`/trial`）
+## 4. 申し込みフォーム（無料体験・授業）
+
+無料体験（`/trial`）と既存生徒の授業（4.5）は、同じフォーム部品（`TrialForm` の `kind` で切り替え）と同じ受付枠を使う。
 
 ### 4.1 入力項目
 
 | 項目 | 種類 | 必須 |
 |---|---|---|
-| 受けたい検定 | プルダウン（`courseSearch` の一覧から自動生成 ＋「まだ決めていない・相談したい」） | ● |
+| 受けたい検定（授業では「受講する検定」） | プルダウン（`courseSearch` の全項目 ＋「まだ決めていない・相談したい」） | ● |
 | 受験予定の級 | プルダウン（3級／2級／1級／まだ決めていない） | ● |
 | お名前 | テキスト | ● |
 | ふりがな | テキスト | 任意 |
@@ -143,34 +142,49 @@ website2/
 | 学校名 | テキスト | ● |
 | メールアドレス | メール（形式チェックあり） | ● |
 | 電話番号 | 電話 | 任意 |
-| 体験の希望日時 | **カレンダーで日付選択 → その日の受講可能時間から選択**（`TrialDateTimePicker`） | ● |
-| 相談したいこと | 複数行テキスト | 任意 |
+| 希望日時 | カレンダーで日付 → その日の空いている時間を選択（`TrialDateTimePicker`、クライアント専用で読み込み） | ● |
+| 相談したいこと（授業では「先生に伝えたいこと」） | 複数行テキスト | 任意 |
 | 保護者の同意 | チェックボックス | ● |
 
-### 4.2 日程受付ルール（`src/lib/content.ts` の `trialSchedule`）
+### 4.2 受付日時のルール（管理画面「無料体験の受付設定」で変更）
 
-```ts
-leadDays: 2,        // 何日先から受付可能か（2 = 明後日以降）
-rangeDays: 45,       // 何日先まで受付可能か
-slotsByWeekday: {    // 曜日ごとの受講可能時間（0=日曜〜6=土曜）
-  平日: ["17:00","18:00","19:00","20:00","21:00"],
-  土曜: ["10:00","11:00","13:00","14:00","15:00","16:00","17:00"],
-  日曜: ["10:00","11:00","13:00","14:00","15:00"],
-},
-closedDates: [],     // 休講日（"YYYY-MM-DD" を追加すればその日を受付停止にできる）
-```
+設定は Supabase の `trial_settings` テーブル（1行のみ）に保存され、管理画面から変更する（6.2）。テーブルが無い・取得に失敗したときは `content.ts` の `trialSchedule` を使う。
 
-⚠️ **すべて仮の設定。実際の稼働時間に合わせて調整が必要。**
+| 設定 | 内容 |
+|---|---|
+| 受付開始 | 今日から何日後から申し込めるか（0 = 当日から） |
+| 受付期間 | 今日から何日先まで申し込めるか |
+| 曜日ごとの受付時間 | 曜日ごとの時間の一覧。空の曜日は受付なし |
+| 日ごとの受付時間 | その日だけの時間（`date_overrides`）。曜日の設定より優先 |
+| 休講日 | 受付を止める日（`closed_dates`）。最優先 |
 
-### 4.3 送信フロー
+- 優先順位は **休講日 → 日ごとの設定 → 曜日ごとの設定**（`src/lib/trial-schedule.ts` の `slotsForDate`）
+- 日付計算はすべて **日本時間**（サーバーはUTCのため）。当日受付のときは、**日本時間で過ぎた時間は選べない・申し込めない**
+- カレンダーは受付設定と予約状況をサーバーアクション（`getTrialSchedule` / `getTakenSlots`）で毎回取得するので、管理画面での変更がすぐ反映される
 
-1. ブラウザ側でバリデーション（未入力があれば該当項目へ自動スクロール）
-2. サーバーアクション `submitTrialApplication`（`src/app/trial/actions.ts`）で**再検証**（ブラウザ側チェックはすり抜けられるため）
-3. ボット対策：人間には見えない隠しフィールド `website` が埋まっていたら、保存せず正常終了扱い（自動投稿対策）
-4. Supabase の `trial_applications` テーブルに `INSERT`
-5. 保存成功後、**申込者への自動返信メール**と**塾への通知メール**を並行送信（`src/lib/emails.ts`）
-6. **保存に失敗した場合は完了画面を出さず、赤いエラーメッセージを表示して入力内容を保持**（申し込みが黙って消えることを防ぐ設計）
-7. メール送信に失敗しても、保存は完了しているため申し込みは成立する（メール失敗はログのみ）
+### 4.3 予約の重複防止と受付枠の共有
+
+- `trial_applications` に `(preferred_date, preferred_time)` の一意インデックス（`status <> 'canceled'` の行のみ）があり、**同じ日時には1件しか入らない**。種別を区別しないため、**無料体験と授業は同じ枠を共有**する
+- 空き状況は `trial_taken_slots` 関数（SECURITY DEFINER）で、個人情報を含めず日付・時間だけを返す
+- 申し込みを管理画面で「キャンセル」にすると、その枠は再び空く
+
+### 4.4 送信フロー（`submitTrialApplication`）
+
+1. ブラウザ側で入力チェック（エラー項目へ自動スクロール）
+2. サーバー側で再チェック。ボット対策の隠し項目 `website` が埋まっていれば保存せず正常終了扱い
+3. 授業（`kind: "lesson"`）の場合は、ページURLの秘密の文字列が正しいかを再確認（4.5）
+4. 選ばれた日時が受付期間・受付時間内かを確認（`isBookable`）。外れていれば「現在受け付けていません」
+5. `trial_applications` に保存。同じ日時が埋まっていれば（一意制約違反）「ちょうど埋まってしまいました」
+6. 申込者への自動返信と、塾への通知メールを送信（種別ごとに文面を切り替え）。メールが失敗しても申し込みは成立
+7. 日時のエラーのときは選択を外し、カレンダーを作り直して最新の空き状況を取り直す
+
+### 4.5 既存生徒用の授業申し込み（`/lesson/<秘密の文字列>`）
+
+- 在籍中の生徒だけが使う申し込みページ。**サイト内のどこからもリンクせず、サイトマップ・robots.txt にも載せない**
+- 秘密の文字列は **環境変数 `LESSON_FORM_TOKEN` にだけ置く**（公開リポジトリに書かない）。一致しないURLは404
+- `noindex, nofollow, nocache`、canonical なし、`referrer: no-referrer`
+- URLが外部に漏れた場合は、Vercel の `LESSON_FORM_TOKEN` を新しいランダムな値に変えて再デプロイすれば、古いURLは使えなくなる
+- 保存時は `kind = 'lesson'`。無料体験は `kind` を送らず、列の既定値（`trial`）になる
 
 ---
 
@@ -178,131 +192,211 @@ closedDates: [],     // 休講日（"YYYY-MM-DD" を追加すればその日を�
 
 ### 5.1 Supabase
 
-| 用途 | テーブル | SQL |
+| 用途 | テーブル・関数 | SQL |
 |---|---|---|
-| 新着情報の表示 | `news` | [supabase/news.sql](supabase/news.sql) |
-| 無料体験申し込みの保存 | `trial_applications` | [supabase/trial_applications.sql](supabase/trial_applications.sql) |
+| 管理者の判定 | `admins`、`is_admin()` | [admin.sql](supabase/admin.sql) |
+| 新着情報 | `news` | [news.sql](supabase/news.sql) |
+| 申し込み（無料体験・授業） | `trial_applications`（`kind` 列）、`trial_taken_slots()` | [trial_applications.sql](supabase/trial_applications.sql)、[trial_applications_kind.sql](supabase/trial_applications_kind.sql) |
+| 受付設定 | `trial_settings`（`date_overrides` 列） | [trial_settings.sql](supabase/trial_settings.sql)、[trial_settings_date_overrides.sql](supabase/trial_settings_date_overrides.sql) |
+| 合格体験記 | `voices`、Storage バケット `voice-photos` | [voices.sql](supabase/voices.sql) |
+| 検定詳細ページ | `subjects` | [subjects.sql](supabase/subjects.sql)、[subjects-add-3.sql](supabase/subjects-add-3.sql)、[subjects-fix-3.sql](supabase/subjects-fix-3.sql) |
+| コラム | `articles` | [articles.sql](supabase/articles.sql) |
 
-- クライアントは `src/lib/supabase.ts`。**環境変数が未設定なら `getSupabaseClient()` が `null` を返す**ため、Supabase未接続でもサイト全体がエラーなく動く
-- `news` テーブルは行単位アクセス制御（RLS）で「`is_published = true` の記事のみ誰でも閲覧可」。書き込みは管理画面から
-- `trial_applications` テーブルはRLSで「**INSERTのみ**誰でも可、読み取りポリシーは無し」。匿名キーが漏れても他人の申し込み内容（氏名・連絡先）は閲覧できない設計
-- 新着情報の取得（`src/lib/news.ts`）は、DB取得に失敗した場合 `content.ts` の仮データにフォールバックし、ページを落とさない
-- トップページ（`src/app/page.tsx`）に `export const revalidate = 300;` を設定し、静的配信を保ったまま最大5分で新着情報の追加を反映
+いずれも実行済み。
 
-### 5.2 Gmail（Nodemailer）
+**アクセス制御（RLS）の方針**
 
-- `src/lib/mailer.ts` — Gmail経由の送信クライアント。環境変数未設定なら送信せず `false` を返す（例外は投げない）
-- `src/lib/emails.ts` — 申込者への自動返信・塾への通知メールの文面を生成。**塾への通知メールは `replyTo` に申込者のアドレスを設定**しており、そのまま返信すれば申込者に直接届く
+- 公開コンテンツ（公開済みの新着情報・コラム、合格体験記、検定ページ、受付設定）は誰でも読める。書き込みは `is_admin()` の管理者だけ
+- `trial_applications` は **誰でも INSERT のみ可**。読み取り・更新は管理者だけ。匿名キーでは他人の申し込み（氏名・連絡先）を読めない
+- 管理画面のサーバーアクションでも、RLSとは別に必ず `isCurrentUserAdmin()` で管理者かを確認する
 
-### 5.3 環境変数（`.env.local`、Git管理外）
+**キャッシュと反映**
 
-```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-GMAIL_USER=
-GMAIL_APP_PASSWORD=      # Googleの「アプリ パスワード」16桁。ログインパスワードではない
-NOTIFY_EMAIL=             # 申し込み通知の宛先（未設定なら GMAIL_USER と同じ）
-```
+| ページ | 再生成の間隔 | 備考 |
+|---|---|---|
+| トップ | 5分 | 新着情報・合格体験記・コラムを含む |
+| `/news` | 1分 | |
+| 検定詳細・コラム | 5分 | コラムは保存時に `revalidatePath` で即時反映 |
+| `/sitemap.xml` | 1時間 | コラム保存時にも即時反映 |
+| 申し込みフォームのカレンダー | 毎回取得 | 受付設定の保存時に `/trial` も再生成 |
 
-ひな形は [.env.local.example](.env.local.example)。
+DBの取得に失敗しても、各 `lib` はフォールバック（`content.ts` / `subjects.ts` の値、または空）で表示を続け、ページを落とさない。
 
-**現状：ローカル環境（`.env.local`）には設定済み**（Supabase接続確認済み、Gmail送信確認済み）。ただし**本番（Vercelなど）にはまだ環境変数を登録していない**ため、デプロイしただけではメール送信・DB接続は動かない。
+### 5.2 メール（Gmail / Nodemailer）
+
+- `src/lib/mailer.ts` — 送信クライアント。環境変数が未設定なら送らず `false` を返す（例外を投げない）
+- `src/lib/emails.ts` — 文面。種別で件名・本文を切り替える
+  - 申込者：「【商業検定ラボ】無料体験（授業）のお申し込みを受け付けました」
+  - 塾：「【体験申込】」または「【授業申込】」＋氏名・検定・希望日時。`replyTo` が申込者なので、そのまま返信できる
+- 通知の宛先は環境変数 `NOTIFY_EMAIL`
+
+### 5.3 環境変数
+
+| 変数 | 内容 |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase の接続情報（匿名キー） |
+| `GMAIL_USER` / `GMAIL_APP_PASSWORD` | 送信元のGmailと、Googleで発行した16桁のアプリパスワード |
+| `NOTIFY_EMAIL` | 申し込み通知の宛先（未設定なら `GMAIL_USER`） |
+| `LESSON_FORM_TOKEN` | 授業申し込みページの秘密の文字列（未設定ならページは404） |
+
+- ローカルは `.env.local`（Git管理外）、本番は **Vercel の Settings → Environment Variables** に同じ6つを登録済み
+- 本番の値を変えたら、Vercel で **Redeploy** しないと反映されない
+- ひな形は [.env.local.example](.env.local.example)（値は空）
 
 ---
 
-## 6. 運用スクリプト（`scripts/`）
+## 6. 管理画面（`/admin`）
 
-非エンジニアでも `.env.local` を手で編集せずに済むよう、CLIスクリプトを用意している。すべて `npm run <script>` 経由、または `node scripts/<file>.mjs` で直接実行可能（PowerShellの実行ポリシーで `npm` 経由が失敗する場合は後者を使う）。
+- `/login` で Supabase Auth のメールアドレス＋パスワードでログイン。`admins` テーブルに載っているメールアドレスだけが管理者
+- `/admin` 配下は `admin/layout.tsx` で管理者以外を `/login` へ転送。`/login` と `/admin` は noindex、robots.txt でもクロール対象外
+- `/admin` と `/login` は生徒向けのヘッダー・ボトムナビを持たない（`(site)` グループの外）
+
+### 6.1 機能一覧（ダッシュボードの並び順）
+
+| メニュー | できること |
+|---|---|
+| 新着情報 | 一覧・作成・編集・削除・公開／非公開 |
+| 申し込み（無料体験・授業） | 一覧・詳細、対応状況（新規／連絡済み／完了／キャンセル）の更新。種別バッジで無料体験と授業を区別 |
+| 無料体験の受付設定 | 受付期間、曜日ごとの受付時間、日ごとの受付時間（カレンダー）、休講日（6.2） |
+| 合格体験記 | 追加・削除（**編集は不可**。直すときは削除して追加し直すか、SQLで更新） |
+| 検定ページ | 既存の検定ページの内容編集（**追加・削除は不可**。追加はSQLで行う：8.4） |
+| コラム | 一覧・作成・編集・削除・下書き（9章） |
+
+### 6.2 無料体験の受付設定の画面
+
+- 受付期間は「今日時点で選べる期間」をその場で表示
+- 曜日ごとの受付時間は、9:00〜22:00 をタップで切り替え＋任意の時刻を追加
+- 日ごとの受付時間は月のカレンダーで日付を選ぶ。**予約が入っている日には水色の点**、選んだ日の**予約済みの時間は「予約あり」で切り替え不可**（生徒側と同じ予約状況を表示）。「この日を休講にする」「曜日の設定に戻す」も可能
+- 設定を変えても、すでに入っている申し込みは取り消されない（管理画面の申し込み一覧から個別に対応）
+
+---
+
+## 7. SEO
+
+### 7.1 ドメイン・Search Console
+
+- 本番は独自ドメイン `shogyo-kentei-lab-academy.com`。旧URL（`*.vercel.app`）は削除済み
+- `siteMeta.url`（`content.ts`）を変えると、canonical・OGP・サイトマップのURLが一括で変わる
+- Google Search Console はドメインプロパティで登録済み（ムームーDNSにTXTレコード）。サイトマップ送信済み
+
+### 7.2 タイトル・メタデータ
+
+- トップの `<title>` は `siteMeta.title`（「商業検定ラボ｜全商検定対策のオンライン個別指導塾」）。下層は「ページ名｜商業検定ラボ」
+- 検定ページのタイトルは「全商〇〇の対策・勉強法」。「全商」は **全商検定カテゴリの科目だけ**に付け、英語検定は `subjectSearchNames` で「全商英検（英語検定）」にする（`src/lib/seo.ts`）
+- 公開ページは canonical を設定。OGP画像は `/images/og.png`（1200×630）。下層ページで `openGraph` を指定するとルートの設定が丸ごと上書きされるため、`withDefaultOpenGraph()` で画像・サイト名を補う
+
+### 7.3 構造化データ（`src/components/seo/JsonLd.tsx`）
+
+| 種類 | 置き場所 |
+|---|---|
+| `EducationalOrganization`（`sameAs` に公式Instagram） | トップ |
+| `FAQPage` | トップ |
+| `Course` ＋ `BreadcrumbList` | 検定詳細 |
+| `BlogPosting` ＋ `BreadcrumbList` | コラム記事 |
+| `BreadcrumbList` | コラム一覧 |
+
+公式SNSは `content.ts` の `socialLinks`。JSON-LD の出力では `<` をエスケープし、入力文字列で `</script>` を閉じられないようにしている。
+
+### 7.4 サイトマップ・robots.txt
+
+- `/sitemap.xml`：トップ、`/trial`、`/columns`、`/news`、**公開中の検定ページ**、公開中のコラム記事
+- `/robots.txt`：全体を許可し、`/admin` と `/login` を除外。サイトマップの場所を記載
+- 授業申し込みページは、どちらにも載せない
+
+---
+
+## 8. 検定詳細ページ（`/subjects/[slug]`）
+
+### 8.1 データ
+
+- 内容は Supabase の `subjects` テーブル（管理画面で編集）。取得できないときは `src/lib/subjects.ts` の値を使う
+- **ページを持つ検定の一覧（slug）は `subjects.ts` が正**（`generateStaticParams` と「検定を探す」のリンク判定に使う）
+
+### 8.2 ページ構成
+
+ヒーロー → どんな検定？（概要＋基本情報） → 商業検定ラボの対策 → 料金プラン（級ごと＋任意のオプション） → つまずきやすいポイント → 無料体験へのCTA。料金は検定ごとに管理画面で設定する。
+
+### 8.3 公開状態と「検定を探す」
+
+公開するかどうかは `content.ts` の `courseSearch` の `ready` で決まる（`isSubjectPublished`）。
+
+| 状態 | 一覧 | 検索・サイトマップ |
+|---|---|---|
+| `ready: true` かつページあり | リンクあり | 検索対象、サイトマップに掲載 |
+| `ready: false` だがページあり（下書き） | 「準備中」・リンクなし | `noindex`、サイトマップに載せない |
+| ページなし | 「準備中」・リンクなし | — |
+
+**公開中（9件）**：簿記実務検定、情報処理検定（ビジネス情報）、情報処理検定（プログラミング）、英語検定、ビジネス文書実務検定、珠算・電卓実務検定、商業経済検定、財務諸表分析検定、日商簿記検定
+
+**準備中（ページなし）**：推薦・総合型選抜対策、就職試験対策
+
+### 8.4 検定ページを追加する手順
+
+1. `src/lib/subjects.ts` に下書きを追加（slug・内容・料金）
+2. 同じ内容を `subjects` テーブルに入れるSQLを Supabase で実行（例：[subjects-add-3.sql](supabase/subjects-add-3.sql)）
+3. 管理画面で内容を仕上げる（`ready: false` の間は検索に出ない）
+4. `courseSearch` の該当項目を `ready: true` にしてデプロイ
+
+---
+
+## 9. コラム（`/columns`）
+
+- 勉強法などの記事。一覧 `/columns`、記事 `/columns/<URL>`。カテゴリは「勉強法」「検定情報」「進路・就職」
+- 管理画面で作成・編集・削除・下書き。URL（slug）は半角英小文字・数字・ハイフン（**公開後は変えない**）
+- 本文は記号で書く：`## 見出し`、`### 小見出し`、`- 箇条書き`、`1. 番号付き`、`**太字**`、`[文字](URL)`。HTMLとしては解釈しないため、本文に `<script>` などを書いても文字として表示される。リンクは `https://` かサイト内パスのみ
+- 記事の最後に無料体験への案内を表示
+
+---
+
+## 10. 合格者の声（合格体験記）
+
+- データは Supabase の `voices` テーブル（管理画面で追加・削除）。新しい順に表示
+- カードは1枚ずつ表示。**左右スワイプ**（横に40px以上、かつ縦より大きく動かしたとき）と、下の**ドット**で切り替え。スマホ幅を使い切るため左右の矢印は置かない
+- 「塾の推しポイント」は任意。**空欄のときは欄ごと表示しない**
+- 写真は Storage（`voice-photos`）の公開URL、またはサイト内の画像パス（`/images/...`）
+
+---
+
+## 11. 運用スクリプト（`scripts/`）
+
+`npm run <script>`、または `node scripts/<file>.mjs` で実行（PowerShellの実行ポリシーで `npm` 経由が失敗する場合は後者）。
 
 | コマンド | 役割 |
 |---|---|
-| `npm run setup:supabase -- <URL> <ANON_KEY>` | Supabaseの接続情報を `.env.local` に書き込む。URL形式・キー長を検証 |
-| `npm run check:supabase` | 接続確認＋`news`/`trial_applications` テーブルの存在確認。実際に取得できた記事も表示 |
-| `npm run setup:gmail -- <アドレス> <アプリパスワード> [通知先]` | Gmail送信設定を `.env.local` に書き込む。アプリパスワードの桁数（16桁）を検証 |
+| `npm run setup:supabase -- <URL> <ANON_KEY>` | Supabaseの接続情報を `.env.local` に書き込む |
+| `npm run check:supabase` | 接続とテーブルの存在を確認 |
+| `npm run setup:gmail -- <アドレス> <アプリパスワード> [通知先]` | Gmail送信設定を `.env.local` に書き込む |
 | `npm run check:mail` | Gmailへの接続確認＋テストメール送信 |
 
 ---
 
-## 7. 検定詳細ページ（`/subjects/[slug]`）
+## 12. 未着手・今後の課題
 
-`src/lib/subjects.ts` の `Subject` 型に沿ってデータを追加するだけで、同じテンプレート（`src/app/subjects/[slug]/page.tsx`）でページが増える設計。`generateStaticParams` で全件を静的生成し、`generateMetadata` で検定ごとのSEOタイトル・description・OGPを自動生成する。
-
-### 7.1 ページ構成（6ブロック）
-
-1. ヒーロー（カテゴリバッジ／検定名／正式名称／キャッチコピー）
-2. どんな検定？（概要文＋基本情報テーブル）
-3. 商業検定ラボの対策（チェックリスト）
-4. 料金プラン（級ごとの受講料カード＋任意のオプション欄）
-5. つまずきやすいポイント（悩み→解決方法の2段カード）
-6. CTA（「まずは無料で体験！」→ `/trial`）
-
-### 7.2 実装済みの検定（6件）
-
-| slug | 検定名 | tone |
-|---|---|---|
-| `zensho-boki` | 簿記実務検定 | sakura |
-| `business-joho` | 情報処理検定（ビジネス情報） | sky |
-| `programming` | 情報処理検定（プログラミング） | mint |
-| `zensho-eiken` | 英語検定 | lemon |
-| `bunsho-sakusei` | ビジネス文書実務検定 | sakura |
-| `dentaku-jitsumu` | 珠算・電卓実務検定 | sky |
-
-### 7.3 「検定を探す」一覧との対応
-
-`courseSearch`（`content.ts`）に載っている検定のうち、`subjects.ts` にページが存在するものだけが一覧上でリンク化される（`CourseSearch.tsx` の `hasDetailPage()` で判定）。未実装の検定は同じ見た目のまま非リンクにし、404を防いでいる。
-
-**未実装（一覧に載っているがページ無し）**：
-- 商業経済検定（`ready: false`）
-- 財務諸表分析（`ready: false`）
-- 推薦・総合型選抜対策（`ready: false`）
-- 就職試験対策（`ready: false`）
-- 日商簿記検定（`ready: true` だがページ未作成）
-
----
-
-## 8. 料金プラン
-
-現状、**全検定・全級で同一の仮料金**（[subjects.ts](src/lib/subjects.ts) の各 `pricing.plans`）：
-
-| 級 | 料金 |
-|---|---|
-| 3級 | 3,100円 / 1時間 |
-| 2級 | 3,200円 / 1時間 |
-| 1級 | 3,400円 / 1時間 |
-
-⚠️ 検定ごとに料金を分けたい場合は、各検定の `pricing.plans` を個別に編集する。
-
----
-
-## 9. 未着手・今後の課題
-
-### 9.1 コンテンツ（公開前に必ず確認・差し替え）
+### 12.1 コンテンツ
 
 | 項目 | 現状 |
 |---|---|
-| 各検定の実施回数・試験時間・合格基準 | 一般に公開されている情報からの推測値。年度により変わる可能性があるため要検証 |
-| 料金 | 全検定・全級で仮の同額。要検証 |
-| 無料体験の受付時間帯 | 仮設定（平日17-21時、土日10-17時台）。実際の稼働に合わせて調整 |
-| 講師情報 | 森田智信（塾長）・後藤もか（講師）は実写真・実データ。**Y先生のみ全項目プレースホルダー** |
-| 合格者の声（合格体験記） | 3件とも氏名・数値・コメントすべて仮のプレースホルダー |
-| ヒーローの画像タイル・バッジ | すべてプレースホルダー（アイコン代替） |
-| STRONG POINTの円形画像 | すべてプレースホルダー |
+| ヒーローの画像タイル | すべてプレースホルダー（アイコン代替） |
+| STRONG POINT の Point 2・3 | 本格実装まで非表示（`hidden: true`）。Point 3 はイラストを用意済み |
+| 財務諸表分析検定の合格基準 | 公式の記載を確認できず未掲載。確認できたら管理画面で追加 |
+| 合格体験記 | 推しポイント未入力のものがある（聞けたらSQLで更新）。写真が仮置きのものがある |
+| コラム | 継続して記事を増やす |
 
-### 9.2 未実装のページ・セクション
+### 12.2 機能・ページ
 
-- **`#about`（「商業検定ラボについて」）セクションが存在しない** — ハンバーガーメニューとSTRONG POINT下部CTAのリンク先だが、押しても何も起きない
-- **`/login`（ログインページ）が存在しない** — メニュー最下部の「ログイン」リンク先。会員機能は未設計（Supabase Authを想定するなら要設計）
-- 検定詳細ページの残り5件（商業経済検定・財務諸表分析・推薦/総合型選抜対策・就職試験対策・日商簿記検定）
+- 推薦・総合型選抜対策、就職試験対策のページ
+- 合格体験記の編集機能（現状は追加・削除のみ）
+- 管理画面からの検定ページの追加（現状はSQL）
 
-### 9.3 インフラ・運用
+### 12.3 運用
 
-- **Git未初期化**。バージョン管理をどうするか未決定
-- **本番デプロイ未実施**。Vercel等にデプロイする場合、環境変数5つ（Supabase 2つ＋Gmail 3つ）を本番環境にも登録する必要がある
-- 無料体験の**予約枠の重複チェック無し**（同じ日時に複数人が申し込み可能。実運用で問題になる場合はSupabase側で埋まった枠を非表示にする実装が必要）
-- 申し込み管理は Supabase の管理画面（Table Editor）を直接見る運用。専用の管理画面は無い
+- Search Console でインデックス状況・検索キーワードを定期的に確認
+- 表示速度の計測（PageSpeed Insights）と改善
+- 外部からのリンク（アプリの説明欄・SNSのプロフィールにサイトURLを掲載）
 
 ---
 
-## 10. 旧プロジェクトとの関係
+## 13. 旧プロジェクトとの関係
 
-`C:\商業検定ラボ\website` に、Funda簿記を参考にした先行プロジェクトが別途存在する（Vercel: `https://shogyo-kentei-lab.vercel.app/` にデプロイ済み、GitHub連携済み）。本プロジェクト（`website2`）はそのコード・データを一切引き継がず、東京アカデミー風のデザインに寄せて**ゼロから再構築**したもの。どちらを本採用にするか、または両方を並行運用するかは未決定。
+`C:\商業検定ラボ\website`（GitHub `hutoru-kakeibo/shogyo-kentei-lab`）は、Funda簿記を参考にした先行プロジェクト。本プロジェクトはそのコード・データを引き継がず、ゼロから作り直したもの。
+**旧サイトの Vercel プロジェクトは削除済み**で、本番は本プロジェクトのみ。旧プロジェクトのリポジトリとローカルの作業中ファイルは残っている。
