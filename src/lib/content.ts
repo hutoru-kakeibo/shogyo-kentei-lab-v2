@@ -218,7 +218,7 @@ export const teachers = {
   labels: {
     school: "出身校",
     qualifications: "保有資格",
-    intro: "自己紹介",
+    intro: "メッセージ",
   },
   items: [
     {
