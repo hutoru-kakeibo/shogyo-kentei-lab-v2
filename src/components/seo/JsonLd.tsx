@@ -15,6 +15,8 @@ function JsonLdScript({ data }: { data: Record<string, unknown> }) {
   );
 }
 
+type FaqEntry = { question: string; answer: string };
+
 const organizationRef = {
   "@type": "EducationalOrganization",
   name: siteMeta.name,
@@ -52,14 +54,18 @@ export function OrganizationJsonLd() {
   );
 }
 
-/** よくある質問。検索結果にQ&Aとして出る可能性がある */
-export function FaqJsonLd() {
+/**
+ * よくある質問。検索結果にQ&Aとして出る可能性がある。
+ * items を渡すとその質問で書き出す（検定ページごとのFAQ用）。
+ * 省略するとトップページの「よくある質問」を使う
+ */
+export function FaqJsonLd({ items = faq.items }: { items?: readonly FaqEntry[] }) {
   return (
     <JsonLdScript
       data={{
         "@context": "https://schema.org",
         "@type": "FAQPage",
-        mainEntity: faq.items.map((item) => ({
+        mainEntity: items.map((item) => ({
           "@type": "Question",
           name: item.question,
           acceptedAnswer: { "@type": "Answer", text: item.answer },

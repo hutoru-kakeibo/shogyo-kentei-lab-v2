@@ -52,6 +52,29 @@ const columns =
   "slug, name, full_name, category, organizer, tone, catch_copy, overview, basics, training, pricing_lead, pricing_plans, pricing_options, pricing_note, struggles";
 
 /**
+ * 検定一覧ページ（/subjects）用に、全検定のデータをまとめて取得する。
+ * 1件ずつ getSubjectData を呼ぶとリクエストが検定の数だけ増えるため、1回で取る。
+ */
+export async function getAllSubjectData(): Promise<Subject[]> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return fallbackSubjects;
+
+  const { data, error } = await supabase.from("subjects").select(columns);
+
+  if (error) {
+    console.error("[subjects] 一覧の取得に失敗しました:", error.message);
+    return fallbackSubjects;
+  }
+
+  const rows = data as SubjectRow[];
+  // 並び順と「どの検定を載せるか」は subjects.ts を正とし、中身だけDBの内容で置き換える
+  return fallbackSubjects.map((fallback) => {
+    const row = rows.find((item) => item.slug === fallback.slug);
+    return row ? toSubject(row) : fallback;
+  });
+}
+
+/**
  * 検定詳細ページのデータを取得する。
  * Supabase が未設定、または取得に失敗した・該当行が無い場合は、
  * subjects.ts の固定データにフォールバックする

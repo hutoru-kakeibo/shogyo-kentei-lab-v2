@@ -102,6 +102,17 @@ export function CourseSearch() {
             </div>
           );
         })}
+
+        {/* 検定ごとの詳しい情報をまとめた一覧ページへ */}
+        <p className="mt-8 text-center">
+          <Link
+            href={courseSearch.moreHref}
+            className="inline-flex items-center gap-1 text-[13px] font-bold text-ink-muted"
+          >
+            {courseSearch.moreLabel}
+            <ArrowRight className="size-4" strokeWidth={2.5} />
+          </Link>
+        </p>
       </div>
     </section>
   );

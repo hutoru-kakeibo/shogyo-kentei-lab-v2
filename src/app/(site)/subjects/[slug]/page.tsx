@@ -3,10 +3,11 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Check, ChevronLeft, CircleHelp, Lightbulb } from "lucide-react";
-import { subjects, type SubjectTone } from "@/lib/subjects";
+import { subjects, type Subject, type SubjectTone } from "@/lib/subjects";
 import { getSubjectData } from "@/lib/subjects-data";
-import { flow, siteMeta } from "@/lib/content";
-import { BreadcrumbJsonLd, CourseJsonLd } from "@/components/seo/JsonLd";
+import { relatedSubjectSlugs, subjectFaqs } from "@/lib/subject-faq";
+import { flow, siteMeta, subjectIndex } from "@/lib/content";
+import { BreadcrumbJsonLd, CourseJsonLd, FaqJsonLd } from "@/components/seo/JsonLd";
 import { isSubjectPublished, subjectSearchName, withDefaultOpenGraph } from "@/lib/seo";
 
 // 管理画面から編集した内容を、再ビルドなしで反映するため5分ごとに作り直す
@@ -46,8 +47,11 @@ export async function generateMetadata({
 
   if (!subject) return {};
 
-  const title = `${subjectSearchName(subject)}の対策・勉強法`;
-  const description = `${subject.fullName}の出題範囲・級構成と、${siteMeta.name}での対策内容を紹介します。${subject.catchCopy}`;
+  // 検索では「◯◯検定とは」「級」「合格基準」「勉強法」と一緒に調べられることが多いので、
+  // タイトルにもその言葉を入れて、検索結果で何が書いてあるページか伝わるようにしている
+  const searchName = subjectSearchName(subject);
+  const title = `${searchName}とは？級・合格基準と勉強法`;
+  const description = `${searchName}の級構成・実施時期・合格基準から、つまずきやすいポイントと勉強法まで解説。商業高校生専門のオンライン個別指導による対策内容と料金もまとめています。`;
 
   return {
     title,
@@ -81,6 +85,12 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
 
   if (!subject) notFound();
 
+  const faqItems = subjectFaqs[slug] ?? [];
+  // 一緒に受ける人が多い検定。ページを持っていて、公開中のものだけ出す
+  const related = (relatedSubjectSlugs[slug] ?? [])
+    .map((relatedSlug) => subjects.find((item) => item.slug === relatedSlug))
+    .filter((item): item is Subject => item !== undefined && isSubjectPublished(item.slug));
+
   return (
     <main>
       <CourseJsonLd
@@ -91,19 +101,25 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
       <BreadcrumbJsonLd
         items={[
           { name: "ホーム", path: "" },
+          { name: subjectIndex.title, path: "/subjects" },
           { name: subject.name, path: `/subjects/${slug}` },
         ]}
       />
+      {/* この検定のよくある質問を、検索エンジンにもQ&Aとして渡す */}
+      {faqItems.length > 0 ? <FaqJsonLd items={faqItems} /> : null}
 
       {/* ヒーロー */}
       <section className={`bg-gradient-to-b px-5 pb-10 pt-6 ${heroTone[subject.tone]}`}>
-        <Link
-          href="/#course"
-          className="inline-flex items-center gap-1 text-xs font-bold text-ink-muted"
+        {/* 構造化データのパンくずと同じ階層を画面にも出す */}
+        <nav
+          aria-label="パンくず"
+          className="flex items-center gap-1 text-xs font-bold text-ink-muted"
         >
           <ChevronLeft className="size-4" strokeWidth={3} />
-          検定を探すに戻る
-        </Link>
+          <Link href="/">ホーム</Link>
+          <span aria-hidden="true">›</span>
+          <Link href="/subjects">{subjectIndex.title}</Link>
+        </nav>
 
         <p className="mt-5">
           <span
@@ -234,6 +250,70 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
           ))}
         </ul>
       </section>
+
+      {/* よくある質問。検索から来た人が最初に知りたいことに、ページ内で答える。
+          開閉式にせず全文を出したままにして、検索エンジンにも確実に読ませる */}
+      {faqItems.length > 0 ? (
+        <section className="bg-white px-5 py-10">
+          <SectionTitle tone={subject.tone}>よくある質問</SectionTitle>
+          <dl className="mt-5 space-y-3">
+            {faqItems.map((item) => (
+              <div
+                key={item.question}
+                className="overflow-hidden rounded-2xl ring-1 ring-sakura-100"
+              >
+                <dt className="flex gap-2 bg-canvas p-4 font-round text-[14px] font-bold leading-snug text-ink">
+                  <span className={`shrink-0 font-round ${accentTone[subject.tone]}`}>Q.</span>
+                  {item.question}
+                </dt>
+                <dd className="flex gap-2 border-t border-sakura-100 bg-white p-4 text-[13px] leading-relaxed text-ink-muted">
+                  <span className={`shrink-0 font-round font-bold ${accentTone[subject.tone]}`}>
+                    A.
+                  </span>
+                  <span className="flex-1">{item.answer}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ) : null}
+
+      {/* 関連する検定。一緒に受ける人が多い検定へ行き来できるようにする */}
+      {related.length > 0 ? (
+        <section className="bg-canvas px-5 py-10">
+          <SectionTitle tone={subject.tone}>一緒に受ける人が多い検定</SectionTitle>
+          <ul className="mt-5 space-y-3">
+            {related.map((item) => (
+              <li key={item.slug}>
+                <Link
+                  href={`/subjects/${item.slug}`}
+                  className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-md shadow-sakura-600/10 ring-1 ring-sakura-100 transition active:translate-y-0.5"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-round text-[15px] font-bold leading-snug text-ink">
+                      {subjectSearchName(item)}
+                    </span>
+                    <span className="mt-1 block text-[12px] leading-relaxed text-ink-muted">
+                      {item.catchCopy}
+                    </span>
+                  </span>
+                  <ArrowRight className="size-5 shrink-0 text-sakura-400" strokeWidth={2.5} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          <p className="mt-5 text-center">
+            <Link
+              href="/subjects"
+              className="inline-flex items-center gap-1 text-[13px] font-bold text-ink-muted"
+            >
+              {subjectIndex.title}をすべて見る
+              <ArrowRight className="size-4" strokeWidth={2.5} />
+            </Link>
+          </p>
+        </section>
+      ) : null}
 
       {/* CTA */}
       <section className="bg-white px-5 py-12 text-center">

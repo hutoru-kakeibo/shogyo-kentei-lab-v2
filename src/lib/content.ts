@@ -44,7 +44,7 @@ export const subjectSearchNames: Record<string, string> = {
 export const globalNav = [
   { label: "商業検定ラボについて", href: "/#about" },
   { label: "選ばれる理由", href: "/#strong-point" },
-  { label: "検定を探す", href: "/#course" },
+  { label: "検定を探す", href: "/subjects" },
   { label: "受講の流れ", href: "/#flow" },
   { label: "講師紹介", href: "/#teachers" },
   { label: "合格者の声", href: "/#voice" },
@@ -59,7 +59,7 @@ export const globalNav = [
 /** 画面下部に常時固定される3つのCTA */
 export const bottomNav = [
   // 下層ページからも飛べるよう、ページ内アンカーは "/#..." の形にしている
-  { label: "対応検定", href: "/#course", icon: "Search", tone: "lemon" },
+  { label: "対応検定", href: "/subjects", icon: "Search", tone: "lemon" },
   { label: "無料体験", href: "/trial", icon: "PencilLine", tone: "sakura" },
   { label: "講師紹介", href: "/#teachers", icon: "GraduationCap", tone: "sky" },
 ] as const;
@@ -295,6 +295,35 @@ export const courseSearch = {
       ],
     },
   ],
+  /** 検定一覧ページ（/subjects）への導線 */
+  moreLabel: "検定ごとの級・実施時期をまとめて見る",
+  moreHref: "/subjects",
+} as const;
+
+/**
+ * 検定一覧ページ（/subjects）。
+ * トップページの「検定を探す」はアコーディオンで名前だけを並べているのに対し、
+ * こちらは検定ごとの実施時期・級・特徴まで載せた、検索から直接入ってこられるページ。
+ */
+export const subjectIndex = {
+  title: "対応検定一覧",
+  englishTitle: "SUBJECTS",
+  /** 検索結果に出す <title>。「全商検定 一覧」「全商検定 種類」で探している人向け */
+  metaTitle: "全商検定の一覧｜種類・級・実施時期と対策のポイント",
+  metaDescription:
+    "全商簿記・情報処理・全商英検など、商業高校で受ける全商検定と日商簿記検定を一覧で紹介。それぞれの級構成・実施時期・つまずきやすいポイントと対策方法がわかります。",
+  lead: "商業検定ラボが対策している検定の一覧です。\n検定名をタップすると、級の構成・実施時期・つまずきやすいポイントと、その検定に合わせた対策の進め方を確認できます。",
+  backLabel: "トップページに戻る",
+  /** 基本情報のうち、一覧カードに出す項目のラベル（見つからない場合は出さない） */
+  highlightLabels: ["実施回数", "統一試験", "級"],
+  preparingLabel: "準備中",
+  preparingNote: "準備中の検定も、無料体験でご相談いただけます。",
+  cta: {
+    title: "どの検定から受けるか迷っていませんか？",
+    body: "学年・得意不得意・検定日から、受ける順番と合格までの計画を一緒に立てます。",
+    label: "無料体験を申し込む",
+    href: "/trial",
+  },
 } as const;
 
 /**
@@ -862,6 +891,10 @@ export const adminSubjects = {
 export const columns = {
   title: "コラム",
   englishTitle: "COLUMN",
+  /** 検索結果に出す <title>・説明文。一覧の見出しより、検索で使われる言葉を入れている */
+  metaTitle: "全商検定の勉強法・検定情報コラム",
+  metaDescription:
+    "全商検定の勉強法、どの検定から受けるかの選び方、進学・就職に活かすコツを、元商業高校生の講師がわかりやすく解説します。",
   lead: "全商検定の勉強法や、検定・進路に役立つ情報をお届けします。",
   listLead: "全商検定の勉強法や、検定・進路に役立つ情報をまとめています。",
   moreLabel: "コラムをもっと見る",

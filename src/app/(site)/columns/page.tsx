@@ -8,11 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { withDefaultOpenGraph } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: columns.title,
-  description: `${siteMeta.name}の${columns.title}。${columns.listLead}`,
+  title: columns.metaTitle,
+  description: columns.metaDescription,
   alternates: { canonical: "/columns" },
   openGraph: withDefaultOpenGraph({
-    title: `${columns.title}｜${siteMeta.name}`,
+    title: `${columns.metaTitle}｜${siteMeta.name}`,
+    description: columns.metaDescription,
     url: `${siteMeta.url}/columns`,
   }),
 };
