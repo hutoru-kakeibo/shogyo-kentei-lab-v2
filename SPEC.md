@@ -280,6 +280,10 @@ DBの取得に失敗しても、各 `lib` はフォールバック（`content.ts
 - 本番は独自ドメイン `shogyo-kentei-lab-academy.com`。旧URL（`*.vercel.app`）は削除済み
 - `siteMeta.url`（`content.ts`）を変えると、canonical・OGP・サイトマップのURLが一括で変わる
 - Google Search Console はドメインプロパティで登録済み（ムームーDNSにTXTレコード）。サイトマップ送信済み
+- Claude Code から Search Console のデータを直接読めるよう、MCPサーバー `mcp-server-gsc`（0.3.0 に固定）を**塾長PCのユーザー設定**に登録済み（このリポジトリには設定を置かない）。プロパティ名は `sc-domain:shogyo-kentei-lab-academy.com`
+  - 認証はサービスアカウントの鍵ではなく、塾長のGoogleアカウントでの **gcloud のアプリケーションデフォルト認証**（読み取り専用の `webmasters.readonly`）。Google Cloud の組織ポリシーで鍵の発行が禁止されているため
+  - Windows の PowerShell では `gcloud` がスクリプト実行制限で動かないので、`gcloud.cmd` と打つ
+  - 認証が切れたら `gcloud.cmd auth application-default login --scopes=https://www.googleapis.com/auth/webmasters.readonly,https://www.googleapis.com/auth/cloud-platform` でログインし直し、`set-quota-project` で Search Console API を有効にしたプロジェクトを指定する
 
 ### 7.2 タイトル・メタデータ
 
@@ -426,6 +430,7 @@ DBの取得に失敗しても、各 `lib` はフォールバック（`content.ts
 
 | 日付 | 変更内容 |
 |---|---|
+| 2026-09-25 | Claude Code から Search Console のデータを読めるよう、MCPサーバーを接続（サイト本体の変更なし） |
 | 2026-09-21 | Search Console の検索クエリをもとにSEOを改善：対応検定一覧 `/subjects` を新設、検定ページに「よくある質問」（FAQPage構造化データ付き）と「一緒に受ける人が多い検定」を追加、パンくずを画面表示、検定ページ・コラム一覧のタイトルと説明文を見直し |
 | 2026-09-21 | コラム2本（「全商英検と英検の違い」「全商検定を受ける順番」）を追加 |
 | 2026-09-20 | 使われなくなった合格体験記の仮画像（`voice-eiken1.png`）を削除 |
