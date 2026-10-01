@@ -244,9 +244,9 @@ DBの取得に失敗しても、各 `lib` はフォールバック（`content.ts
 | `GMAIL_USER` / `GMAIL_APP_PASSWORD` | 送信元のGmailと、Googleで発行した16桁のアプリパスワード |
 | `NOTIFY_EMAIL` | 申し込み通知の宛先（未設定なら `GMAIL_USER`） |
 | `LESSON_FORM_TOKEN` | 授業申し込みページの秘密の文字列（未設定ならページは404） |
-| `NEXT_PUBLIC_GA_ID` | Googleアナリティクス4の測定ID（`G-` で始まる）。未設定・形式違いなら計測しない（7.5） |
+| `NEXT_PUBLIC_GA_ID` | Googleアナリティクス4の測定IDを**上書きしたいときだけ**設定（任意。7.5） |
 
-- ローカルは `.env.local`（Git管理外）、本番は **Vercel の Settings → Environment Variables** に登録（`NEXT_PUBLIC_GA_ID` 以外の6つは登録済み）
+- ローカルは `.env.local`（Git管理外）、本番は **Vercel の Settings → Environment Variables** に、上の表のうち `NEXT_PUBLIC_GA_ID` 以外の6つを登録済み
 - 本番の値を変えたら、Vercel で **Redeploy** しないと反映されない
 - ひな形は [.env.local.example](.env.local.example)（値は空）
 
@@ -321,6 +321,7 @@ DBの取得に失敗しても、各 `lib` はフォールバック（`content.ts
 
 「無料体験」までの流れ（ボタンのクリック率・フォームの離脱率）を測るため、Googleアナリティクス4を使う。
 
+- GA4のプロパティは「商業検定ラボ」（測定ID `G-PH20MP7WZK`。同じアカウントにある「全商英検対策トレーニング」とは別）。測定IDは公開情報なので `src/lib/analytics.ts` に置き、**本番ビルドでだけ**計測する（`npm run dev` のアクセスは混ぜない）
 - 読み込むのは生徒向けページ（`(site)` の layout）だけ。管理画面・ログインと、**授業申し込みページ（`/lesson/...`）では読み込まない**（URLの秘密の文字列をGoogleに送らないため）
 - **氏名・メールアドレス・学校名などの入力内容は送らない**
 
@@ -454,6 +455,7 @@ DBの取得に失敗しても、各 `lib` はフォールバック（`content.ts
 
 | 日付 | 変更内容 |
 |---|---|
+| 2026-10-02 | GA4の測定ID（商業検定ラボ専用プロパティ）を設定し、本番で計測を開始 |
 | 2026-10-02 | アクセス解析（GA4）を組み込み、無料体験ボタンのクリック・フォームの入力開始・エラー・申し込み完了を記録。プライバシーポリシー `/privacy` を新設し、メニューと申し込みフォームからリンク |
 | 2026-09-26 | 講師紹介に山﨑優右（講師）を追加（写真は正方形に切り抜いて `teacher-yamasaki.jpg` として配置） |
 | 2026-09-25 | Claude Code から Search Console のデータを読めるよう、MCPサーバーを接続（サイト本体の変更なし） |
