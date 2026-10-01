@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
 import { courseSearch, siteMeta, subjectIndex } from "@/lib/content";
 import { getAllSubjectData } from "@/lib/subjects-data";
+import { getArticleSummaries } from "@/lib/articles";
 import type { Subject } from "@/lib/subjects";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { isSubjectPublished, subjectSearchName, withDefaultOpenGraph } from "@/lib/seo";
@@ -33,9 +34,25 @@ function highlight(subject: Subject) {
   return null;
 }
 
+/** 基本情報から、指定したラベルの値を探す（見つからなければ比較表の空欄記号） */
+function basicValue(subject: Subject, labels: readonly string[]) {
+  for (const label of labels) {
+    const found = subject.basics.find((item) => item.label === label);
+    if (found) return found.value;
+  }
+  return subjectIndex.table.empty;
+}
+
 export default async function SubjectIndexPage() {
-  const subjects = await getAllSubjectData();
+  const [subjects, articles] = await Promise.all([getAllSubjectData(), getArticleSummaries()]);
   const bySlug = new Map(subjects.map((subject) => [subject.slug, subject]));
+  // 比較表に載せるのは、公開中の検定ページだけ（courseSearch の並び順）
+  const tableRows = courseSearch.categories
+    .flatMap((category): string[] => category.items.map((item) => item.href))
+    .map((href) => bySlug.get(href.replace("/subjects/", "")))
+    .filter((subject): subject is Subject => Boolean(subject) && isSubjectPublished(subject!.slug));
+  // 受ける順番のコラムは、公開中のときだけ案内する
+  const roadmapPublished = articles.some((article) => article.slug === subjectIndex.roadmap.slug);
 
   return (
     <main>
@@ -61,6 +78,69 @@ export default async function SubjectIndexPage() {
         <p className="mt-4 whitespace-pre-line text-[13px] leading-relaxed text-ink-muted">
           {subjectIndex.lead}
         </p>
+      </section>
+
+      {/* 比較表。「全商検定 一覧」で検索する人は、まず全体を表で見比べたいので冒頭に置く。
+          スマホでは表だけを横にスクロールさせ、ページ全体ははみ出させない */}
+      <section className="bg-white px-5 pb-4 pt-6">
+        <h2 className="font-round text-lg font-bold text-ink">{subjectIndex.table.title}</h2>
+        <p className="mt-2 text-[12px] leading-relaxed text-ink-muted">
+          {subjectIndex.table.caption}
+        </p>
+
+        <div className="mt-4 overflow-x-auto rounded-2xl ring-1 ring-sakura-100">
+          <table className="w-full min-w-[560px] border-collapse text-left text-[12px] leading-relaxed">
+            <thead className="bg-sakura-50 text-ink-muted">
+              <tr>
+                <th scope="col" className="px-3 py-2 font-bold">
+                  {subjectIndex.table.headers.name}
+                </th>
+                <th scope="col" className="px-3 py-2 font-bold">
+                  {subjectIndex.table.headers.grades}
+                </th>
+                <th scope="col" className="px-3 py-2 font-bold">
+                  {subjectIndex.table.headers.schedule}
+                </th>
+                <th scope="col" className="px-3 py-2 font-bold">
+                  {subjectIndex.table.headers.passLine}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {tableRows.map((subject) => (
+                <tr key={subject.slug} className="border-t border-sakura-100 align-top">
+                  <th scope="row" className="px-3 py-2.5 font-bold">
+                    <Link
+                      href={`/subjects/${subject.slug}`}
+                      className="text-sky-600 underline underline-offset-2"
+                    >
+                      {subjectSearchName(subject)}
+                    </Link>
+                  </th>
+                  <td className="px-3 py-2.5 text-ink">{basicValue(subject, ["級"])}</td>
+                  <td className="px-3 py-2.5 text-ink">
+                    {basicValue(subject, subjectIndex.table.scheduleLabels)}
+                  </td>
+                  <td className="px-3 py-2.5 text-ink">{basicValue(subject, ["合格基準"])}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-[11px] text-ink-muted">{subjectIndex.table.note}</p>
+
+        {roadmapPublished ? (
+          <Link
+            href={`/columns/${subjectIndex.roadmap.slug}`}
+            className="mt-5 flex items-center gap-3 rounded-2xl bg-lemon-50 p-4 ring-1 ring-lemon-200 transition active:translate-y-0.5"
+          >
+            <BookOpen className="size-6 shrink-0 text-lemon-600" strokeWidth={2.5} />
+            <span className="flex-1 font-round text-[14px] font-bold leading-snug text-ink">
+              {subjectIndex.roadmap.label}
+            </span>
+            <ArrowRight className="size-5 shrink-0 text-sakura-400" strokeWidth={2.5} />
+          </Link>
+        ) : null}
       </section>
 
       <section className="bg-white px-5 pb-12 pt-6">

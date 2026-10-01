@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Check, ChevronLeft, CircleHelp, Lightbulb } from "lucide-react";
+import { ArrowRight, BookOpen, Check, ChevronLeft, CircleHelp, Lightbulb } from "lucide-react";
 import { subjects, type Subject, type SubjectTone } from "@/lib/subjects";
 import { getSubjectData } from "@/lib/subjects-data";
-import { relatedSubjectSlugs, subjectFaqs } from "@/lib/subject-faq";
+import { relatedColumnSlugs, relatedSubjectSlugs, subjectFaqs } from "@/lib/subject-faq";
+import { getArticleSummaries } from "@/lib/articles";
 import { flow, siteMeta, subjectIndex } from "@/lib/content";
 import { BreadcrumbJsonLd, CourseJsonLd, FaqJsonLd } from "@/components/seo/JsonLd";
 import { isSubjectPublished, subjectSearchName, withDefaultOpenGraph } from "@/lib/seo";
@@ -90,6 +91,14 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
   const related = (relatedSubjectSlugs[slug] ?? [])
     .map((relatedSlug) => subjects.find((item) => item.slug === relatedSlug))
     .filter((item): item is Subject => item !== undefined && isSubjectPublished(item.slug));
+  // 関連コラム。公開中の記事だけを、subject-faq.ts に書いた順で出す
+  const columnSlugs = relatedColumnSlugs[slug] ?? [];
+  const relatedColumns =
+    columnSlugs.length > 0
+      ? (await getArticleSummaries())
+          .filter((article) => columnSlugs.includes(article.slug))
+          .sort((a, b) => columnSlugs.indexOf(a.slug) - columnSlugs.indexOf(b.slug))
+      : [];
 
   return (
     <main>
@@ -275,6 +284,37 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
               </div>
             ))}
           </dl>
+        </section>
+      ) : null}
+
+      {/* 関連コラム。検定ページからコラムへのリンクは、コラムが検索に登録されるための手がかりにもなる */}
+      {relatedColumns.length > 0 ? (
+        <section className="bg-white px-5 py-10">
+          <SectionTitle tone={subject.tone}>あわせて読みたいコラム</SectionTitle>
+          <ul className="mt-5 space-y-3">
+            {relatedColumns.map((article) => (
+              <li key={article.slug}>
+                <Link
+                  href={`/columns/${article.slug}`}
+                  className="flex items-center gap-3 rounded-2xl bg-canvas p-4 ring-1 ring-sakura-100 transition active:translate-y-0.5"
+                >
+                  <BookOpen
+                    className={`size-6 shrink-0 ${accentTone[subject.tone]}`}
+                    strokeWidth={2.5}
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-round text-[14px] font-bold leading-snug text-ink">
+                      {article.title}
+                    </span>
+                    <span className="mt-1 line-clamp-2 block text-[12px] leading-relaxed text-ink-muted">
+                      {article.description}
+                    </span>
+                  </span>
+                  <ArrowRight className="size-5 shrink-0 text-sakura-400" strokeWidth={2.5} />
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       ) : null}
 

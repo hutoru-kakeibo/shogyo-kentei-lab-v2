@@ -238,3 +238,23 @@ export const relatedSubjectSlugs: Record<string, string[]> = {
   "zaimu-shohyo-bunseki": ["zensho-boki", "nissho-boki", "shogyo-keizai"],
   "nissho-boki": ["zensho-boki", "zaimu-shohyo-bunseki", "business-joho"],
 };
+
+/**
+ * 検定ページの下に出す「関連コラム」（コラムのURLの slug）。
+ * 公開中のものだけ表示されるので、下書きや削除済みの記事を書いても表示されないだけで壊れない。
+ * Googleは関連ページからのリンクが無いコラムを重要度が低いと見なしやすく、
+ * 一覧からしかリンクしていなかったコラム2本が検索に登録されなかったため追加した
+ */
+const roadmapColumn = "zensho-kentei-order-roadmap";
+
+export const relatedColumnSlugs: Record<string, string[]> = {
+  "zensho-boki": [roadmapColumn],
+  "business-joho": [roadmapColumn],
+  programming: [roadmapColumn],
+  "zensho-eiken": ["zensho-eiken-vs-eiken", roadmapColumn],
+  "bunsho-sakusei": [roadmapColumn],
+  "dentaku-jitsumu": [roadmapColumn],
+  "shogyo-keizai": [roadmapColumn, "zensho-eiken-vs-eiken"],
+  "zaimu-shohyo-bunseki": [roadmapColumn],
+  "nissho-boki": [roadmapColumn],
+};
