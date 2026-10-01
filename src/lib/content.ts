@@ -53,6 +53,7 @@ export const globalNav = [
   // コラムは記事が0件だとトップに欄が出ないので、アンカーではなく一覧ページへリンクする
   { label: "コラム", href: "/columns" },
   { label: "新着情報", href: "/#news" },
+  { label: "プライバシーポリシー", href: "/privacy" },
   { label: "ログイン", href: "/login" },
 ];
 
@@ -390,6 +391,8 @@ export const trialForm = {
   },
   /** 保護者同意のチェック文言 */
   consent: "未成年のため、保護者の同意を得たうえで申し込みます（20歳以上の方もチェックしてください）",
+  /** 同意欄の下に出す、個人情報の取り扱いの案内 */
+  privacyNote: { before: "お申し込み内容は", linkLabel: "プライバシーポリシー", after: "に沿って取り扱います。" },
   /** 送信完了画面 */
   done: {
     title: "お申し込みありがとうございます",

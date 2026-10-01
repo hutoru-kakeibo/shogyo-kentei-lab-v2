@@ -2,10 +2,11 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CircleAlert, CircleCheck, Send } from "lucide-react";
 import { courseSearch, lessonForm, trialForm } from "@/lib/content";
 import { submitTrialApplication, type ApplicationKind } from "@/lib/trial-actions";
+import { trackEvent } from "@/lib/analytics";
 
 // 「今日」を基準にカレンダーを組み立てるため、サーバー側では描画しない（表示ズレ防止）
 const TrialDateTimePicker = dynamic(
@@ -129,8 +130,14 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
   // 「その日時は埋まった」エラーのあと、日程ピッカーを丸ごと作り直して
   // 最新の空き状況を取得し直させるためのキー
   const [pickerKey, setPickerKey] = useState(0);
+  // 入力開始を1回だけ記録するための印（かご落ち率＝入力を始めたのに送信まで行かなかった割合の分母）
+  const startedRef = useRef(false);
 
   const update = <K extends keyof Values>(key: K, value: Values[K]) => {
+    if (!startedRef.current && key !== "website") {
+      startedRef.current = true;
+      trackEvent("form_start", { form_kind: kind, first_field: key });
+    }
     setValues((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: undefined }));
   };
@@ -167,6 +174,8 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
     if (Object.keys(nextErrors).length > 0) {
       // 最初のエラー項目までスクロールして気づけるようにする
       const firstKey = Object.keys(nextErrors)[0];
+      // どの項目で止まる人が多いかを見るため、最初に引っかかった項目名だけ送る（入力内容は送らない）
+      trackEvent("form_error", { form_kind: kind, error_type: "validation", field: firstKey });
       document.getElementById(firstKey)?.scrollIntoView({ block: "center", behavior: "smooth" });
       return;
     }
@@ -181,11 +190,15 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
     if (!result.ok) {
       // 保存できていないので、完了画面は出さず入力内容を残したままエラーを表示する
       setSendError(result.message);
-
-      if (
+      const slotProblem =
         result.message === trialForm.errors.slotTaken ||
-        result.message === trialForm.errors.slotUnavailable
-      ) {
+        result.message === trialForm.errors.slotUnavailable;
+      trackEvent("form_error", {
+        form_kind: kind,
+        error_type: slotProblem ? "slot_unavailable" : "send_failed",
+      });
+
+      if (slotProblem) {
         // 選んでいた日時はもう埋まっている（または受付を止めた）ので選択を外し、
         // ピッカーを作り直して最新の受付設定・空き状況を取り直す
         setValues((current) => ({ ...current, preferredDate: "", preferredTime: "" }));
@@ -194,6 +207,8 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
       return;
     }
 
+    // GA4 の推奨イベント名。管理画面で「キーイベント（コンバージョン）」に設定して使う
+    trackEvent("generate_lead", { form_kind: kind, subject: values.subject });
     setDone(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -403,6 +418,17 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
           <span className="text-[13px] leading-relaxed text-ink">{trialForm.consent}</span>
         </label>
         <ErrorText id="consent-error" message={errors.consent} />
+        <p className="mt-2 text-[12px] leading-relaxed text-ink-muted">
+          {trialForm.privacyNote.before}
+          <Link
+            href="/privacy"
+            target="_blank"
+            className="font-bold text-sky-600 underline underline-offset-2"
+          >
+            {trialForm.privacyNote.linkLabel}
+          </Link>
+          {trialForm.privacyNote.after}
+        </p>
       </div>
 
       {/* ボット対策の隠し項目。人間には見えず、埋まっていたら自動投稿と判断する */}

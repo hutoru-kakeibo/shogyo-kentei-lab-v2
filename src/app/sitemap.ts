@@ -35,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     { url: `${siteMeta.url}/news`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${siteMeta.url}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
     ...subjects
       .filter((subject) => isSubjectPublished(subject.slug))
       .map((subject) => ({

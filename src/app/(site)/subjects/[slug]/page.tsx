@@ -324,6 +324,7 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
         </p>
         <Link
           href={flow.ctaHref}
+          data-cta="subject_page"
           className="mt-6 inline-flex items-center gap-6 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-8 py-4 font-round text-base font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5"
         >
           {flow.ctaLabel}

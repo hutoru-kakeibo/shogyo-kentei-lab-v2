@@ -24,6 +24,7 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              data-cta="bottom_nav"
               className={`flex flex-col items-center justify-center gap-0.5 rounded-t-2xl bg-gradient-to-b py-2.5 shadow-lg transition active:translate-y-0.5 ${toneClass[item.tone]}`}
             >
               <Icon className="size-5" strokeWidth={2.5} />

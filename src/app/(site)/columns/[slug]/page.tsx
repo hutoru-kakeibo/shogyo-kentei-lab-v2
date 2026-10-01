@@ -106,6 +106,7 @@ export default async function ColumnPage({ params }: PageProps<"/columns/[slug]"
           <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">{columns.cta.body}</p>
           <Link
             href={columns.cta.href}
+            data-cta="column_cta"
             className="mt-5 inline-flex items-center gap-4 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-7 py-3.5 font-round text-[15px] font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5"
           >
             {columns.cta.label}

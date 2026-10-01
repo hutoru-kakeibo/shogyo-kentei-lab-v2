@@ -55,6 +55,7 @@ website2/
     │   │   ├── subjects/page.tsx        # 対応検定一覧（8.5）
     │   │   ├── subjects/[slug]/page.tsx # 検定詳細ページ（8章）
     │   │   ├── news/page.tsx            # 新着情報の一覧
+    │   │   ├── privacy/page.tsx         # プライバシーポリシー（7.5）
     │   │   └── columns/                 # コラム一覧・記事ページ（9章）
     │   ├── login/page.tsx  # 管理者ログイン
     │   └── admin/          # 管理画面（6章。layout.tsx で管理者以外を /login へ転送）
@@ -64,6 +65,7 @@ website2/
     │   ├── forms/          # 申し込みフォーム・日時ピッカー・ログインフォーム
     │   ├── admin/          # 管理画面の一覧・フォーム
     │   ├── seo/JsonLd.tsx  # 構造化データ（7.3）
+    │   ├── analytics/Analytics.tsx # GA4 の読み込みと「無料体験」ボタンのクリック計測（7.5）
     │   └── ui/             # 汎用パーツ（ImagePlaceholder、コラム本文の表示 など）
     └── lib/
         ├── content.ts          # 固定の文言・データ、DBのフォールバック値
@@ -79,7 +81,9 @@ website2/
         ├── emails.ts / mailer.ts  # メール文面と送信
         ├── news.ts / voice.ts / subjects-data.ts / articles.ts # 各DBの読み取り（失敗時はフォールバック）
         ├── article-body.ts     # コラム本文の記法の変換
-        └── seo.ts              # OGPの補完、検定ページの呼び名、公開判定
+        ├── seo.ts              # OGPの補完、検定ページの呼び名、公開判定
+        ├── analytics.ts        # GA4 へのイベント送信（個人情報は送らない）
+        └── privacy-policy.ts   # プライバシーポリシーの文面
 ```
 
 ### 2.1 トップページのセクション（`src/app/(site)/page.tsx` の並び順）
@@ -240,8 +244,9 @@ DBの取得に失敗しても、各 `lib` はフォールバック（`content.ts
 | `GMAIL_USER` / `GMAIL_APP_PASSWORD` | 送信元のGmailと、Googleで発行した16桁のアプリパスワード |
 | `NOTIFY_EMAIL` | 申し込み通知の宛先（未設定なら `GMAIL_USER`） |
 | `LESSON_FORM_TOKEN` | 授業申し込みページの秘密の文字列（未設定ならページは404） |
+| `NEXT_PUBLIC_GA_ID` | Googleアナリティクス4の測定ID（`G-` で始まる）。未設定・形式違いなら計測しない（7.5） |
 
-- ローカルは `.env.local`（Git管理外）、本番は **Vercel の Settings → Environment Variables** に同じ6つを登録済み
+- ローカルは `.env.local`（Git管理外）、本番は **Vercel の Settings → Environment Variables** に登録（`NEXT_PUBLIC_GA_ID` 以外の6つは登録済み）
 - 本番の値を変えたら、Vercel で **Redeploy** しないと反映されない
 - ひな形は [.env.local.example](.env.local.example)（値は空）
 
@@ -309,7 +314,26 @@ DBの取得に失敗しても、各 `lib` はフォールバック（`content.ts
 
 - `/sitemap.xml`：トップ、`/trial`、`/subjects`、`/columns`、`/news`、**公開中の検定ページ**、公開中のコラム記事
 - `/robots.txt`：全体を許可し、`/admin` と `/login` を除外。サイトマップの場所を記載
+- `/sitemap.xml` には `/privacy` も載せる
 - 授業申し込みページは、どちらにも載せない
+
+### 7.5 アクセス解析（GA4）とプライバシーポリシー
+
+「無料体験」までの流れ（ボタンのクリック率・フォームの離脱率）を測るため、Googleアナリティクス4を使う。
+
+- 読み込むのは生徒向けページ（`(site)` の layout）だけ。管理画面・ログインと、**授業申し込みページ（`/lesson/...`）では読み込まない**（URLの秘密の文字列をGoogleに送らないため）
+- **氏名・メールアドレス・学校名などの入力内容は送らない**
+
+| イベント | 送るタイミング | パラメータ |
+|---|---|---|
+| `cta_click` | `/trial` へのリンクが押されたとき（全ページ共通で拾う） | `cta_location`：`bottom_nav` / `home_flow` / `subject_page` / `subject_index` / `column_cta`。目印の無いリンクは `column_body` などページの種類 |
+| `form_start` | フォームのどれかの項目を最初に操作したとき（1回だけ） | `form_kind`、`first_field` |
+| `form_error` | 送信時の入力エラー、送信の失敗、選んだ日時が埋まっていたとき | `form_kind`、`error_type`（`validation` / `slot_unavailable` / `send_failed`）、`field`（入力エラーの最初の項目名） |
+| `generate_lead` | 申し込みの保存に成功したとき（GA4の推奨イベント。GA側でキーイベントに設定する） | `form_kind`、`subject`（検定名） |
+
+- ボタンの「押された場所」は、リンク（または親要素）の `data-cta` 属性で付ける。新しく無料体験ボタンを置いたら `data-cta` を付けること
+- **かご落ち率** ＝ 1 − `generate_lead` ÷ `form_start`、**ボタンのクリック率** ＝ `cta_click` ÷ 訪問数（場所別に比較できる）
+- プライバシーポリシー `/privacy` の文面は `src/lib/privacy-policy.ts`。フォームの項目・データの保存先・解析の内容を変えたら合わせて直す。ハンバーガーメニューと申し込みフォーム（同意欄の下）からリンク
 
 ---
 
@@ -430,6 +454,7 @@ DBの取得に失敗しても、各 `lib` はフォールバック（`content.ts
 
 | 日付 | 変更内容 |
 |---|---|
+| 2026-10-02 | アクセス解析（GA4）を組み込み、無料体験ボタンのクリック・フォームの入力開始・エラー・申し込み完了を記録。プライバシーポリシー `/privacy` を新設し、メニューと申し込みフォームからリンク |
 | 2026-09-26 | 講師紹介に山﨑優右（講師）を追加（写真は正方形に切り抜いて `teacher-yamasaki.jpg` として配置） |
 | 2026-09-25 | Claude Code から Search Console のデータを読めるよう、MCPサーバーを接続（サイト本体の変更なし） |
 | 2026-09-21 | Search Console の検索クエリをもとにSEOを改善：対応検定一覧 `/subjects` を新設、検定ページに「よくある質問」（FAQPage構造化データ付き）と「一緒に受ける人が多い検定」を追加、パンくずを画面表示、検定ページ・コラム一覧のタイトルと説明文を見直し |
