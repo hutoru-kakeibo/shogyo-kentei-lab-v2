@@ -36,6 +36,26 @@ export const subjectSearchNames: Record<string, string> = {
 };
 
 /**
+ * 検定ページの <title> を個別に決めたいときだけ書く（書かない検定は「〇〇とは？級・合格基準と勉強法」）。
+ * Search Console で「日程」「いつ」「合格点」「英検との違い」と一緒に検索されていたページは、
+ * その言葉をタイトルに入れて、検索結果で答えが載っているページだと分かるようにしている
+ */
+export const subjectMetaTitles: Record<string, string> = {
+  "zensho-eiken": "全商英検（英語検定）とは？2026年度の日程・合格点・英検との違い",
+  "zensho-boki": "全商簿記実務検定とは？2026年度の日程・級・合格基準と勉強法",
+};
+
+/** 検定ページの「試験日程」欄の文言（日程そのものは src/lib/exam-schedule.ts） */
+export const examScheduleSection = {
+  titleSuffix: "の試験日程",
+  headers: { round: "回", examDate: "試験日", applyPeriod: "申込期間" },
+  status: { done: "終了", ongoing: "実施中", next: "次回", upcoming: "" },
+  sourcePrefix: "出典：",
+  checkedLabel: "確認日",
+  caution: "日程は変更される場合があります。受験の際は、必ず在籍校の案内と公式の要項をご確認ください。",
+};
+
+/**
  * ハンバーガーメニューの中身。
  * ページ内アンカーは、検定詳細ページ・申込ページなど下層ページからも機能するよう
  * 必ず "/#..." の形にする（"#..." のままだと、そのページ内でハッシュが足されるだけで

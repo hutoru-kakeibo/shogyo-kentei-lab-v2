@@ -7,7 +7,15 @@ import { subjects, type Subject, type SubjectTone } from "@/lib/subjects";
 import { getSubjectData } from "@/lib/subjects-data";
 import { relatedColumnSlugs, relatedSubjectSlugs, subjectFaqs } from "@/lib/subject-faq";
 import { getArticleSummaries } from "@/lib/articles";
-import { flow, siteMeta, subjectIndex } from "@/lib/content";
+import {
+  examScheduleSection,
+  flow,
+  siteMeta,
+  subjectIndex,
+  subjectMetaTitles,
+} from "@/lib/content";
+import { examSchedules, roundStatuses } from "@/lib/exam-schedule";
+import { todayInJapan } from "@/lib/trial-schedule";
 import { BreadcrumbJsonLd, CourseJsonLd, FaqJsonLd } from "@/components/seo/JsonLd";
 import { isSubjectPublished, subjectSearchName, withDefaultOpenGraph } from "@/lib/seo";
 
@@ -51,7 +59,7 @@ export async function generateMetadata({
   // 検索では「◯◯検定とは」「級」「合格基準」「勉強法」と一緒に調べられることが多いので、
   // タイトルにもその言葉を入れて、検索結果で何が書いてあるページか伝わるようにしている
   const searchName = subjectSearchName(subject);
-  const title = `${searchName}とは？級・合格基準と勉強法`;
+  const title = subjectMetaTitles[slug] ?? `${searchName}とは？級・合格基準と勉強法`;
   const description = `${searchName}の級構成・実施時期・合格基準から、つまずきやすいポイントと勉強法まで解説。商業高校生専門のオンライン個別指導による対策内容と料金もまとめています。`;
 
   return {
@@ -99,6 +107,9 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
           .filter((article) => columnSlugs.includes(article.slug))
           .sort((a, b) => columnSlugs.indexOf(a.slug) - columnSlugs.indexOf(b.slug))
       : [];
+  // 今年度の試験日程（公式の要項から転記したものがある検定だけ）。過ぎた回・次の回を日本時間で判定する
+  const schedule = examSchedules[slug];
+  const statuses = schedule ? roundStatuses(schedule.rounds, todayInJapan()) : [];
 
   return (
     <main>
@@ -168,6 +179,80 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
           ※ 最新の日程・実施要項は{subject.organizer}の発表をご確認ください。
         </p>
       </section>
+
+      {/* 今年度の試験日程。「〇〇 日程」「〇〇 いつ」で検索して来た人に、ページ内で答える */}
+      {schedule ? (
+        <section className="bg-white px-5 pb-10">
+          <SectionTitle tone={subject.tone}>
+            {schedule.fiscalYear}
+            {examScheduleSection.titleSuffix}
+          </SectionTitle>
+          <ul className="mt-5 space-y-3">
+            {schedule.rounds.map((round, index) => {
+              const status = statuses[index];
+              return (
+                <li
+                  key={round.name}
+                  className={`rounded-2xl p-4 ring-1 ${
+                    status === "next" || status === "ongoing"
+                      ? "bg-lemon-50 ring-lemon-300"
+                      : status === "done"
+                        ? "bg-canvas opacity-60 ring-sakura-100"
+                        : "bg-canvas ring-sakura-100"
+                  }`}
+                >
+                  <p className="flex items-center gap-2 font-round text-[15px] font-bold text-ink">
+                    {round.name}
+                    {examScheduleSection.status[status] ? (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          status === "done" ? "bg-sakura-100 text-ink-muted" : badgeTone[subject.tone]
+                        }`}
+                      >
+                        {examScheduleSection.status[status]}
+                      </span>
+                    ) : null}
+                  </p>
+                  <dl className="mt-2 space-y-1 text-[12px] leading-relaxed">
+                    <div className="flex gap-2">
+                      <dt className="w-16 shrink-0 font-bold text-ink-muted">
+                        {examScheduleSection.headers.examDate}
+                      </dt>
+                      <dd className="flex-1 font-bold text-ink">{round.examDate}</dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="w-16 shrink-0 font-bold text-ink-muted">
+                        {examScheduleSection.headers.applyPeriod}
+                      </dt>
+                      <dd className="flex-1 text-ink">{round.applyPeriod}</dd>
+                    </div>
+                  </dl>
+                </li>
+              );
+            })}
+          </ul>
+
+          <ul className="mt-4 list-disc space-y-1 pl-5 text-[12px] leading-relaxed text-ink-muted">
+            {schedule.notes.map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
+          <p className="mt-3 text-[11px] leading-relaxed text-ink-muted">
+            {examScheduleSection.caution}
+            <br />
+            {examScheduleSection.sourcePrefix}
+            <a
+              href={schedule.source.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sky-600 underline underline-offset-2"
+            >
+              {schedule.source.label}
+            </a>
+            （{examScheduleSection.checkedLabel}：{schedule.checkedAt.replaceAll("-", ".")}）
+          </p>
+        </section>
+      ) : null}
 
       {/* 商業検定ラボの対策 */}
       <section className="bg-white px-5 py-10">
