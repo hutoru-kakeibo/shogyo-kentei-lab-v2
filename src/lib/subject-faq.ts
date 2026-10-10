@@ -224,6 +224,34 @@ export const subjectFaqs: Record<string, SubjectFaqItem[]> = {
         "統一試験は年3回（6月・11月・2月）実施され、1級は6月と11月のみです。ネット試験は2級・3級で実施されており、実施日は会場によって異なります。最新の日程と実施要項は日本商工会議所の発表をご確認ください。",
     },
   ],
+
+  eiken: [
+    {
+      question: "準2級プラスとは、どんな級ですか？",
+      answer:
+        "2025年度に新しく設けられた、準2級と2級の間の級です。レベルの目安は高校上級程度で、準2級（高校中級程度）と2級（高校卒業程度）の差が大きいことから、段階的にステップアップできるように作られました。試験は準2級・2級と同じく、一次試験（リーディング・ライティング・リスニング）と二次試験（面接）で行われます。",
+    },
+    {
+      question: "準2級・準2級プラス・2級は、それぞれ何点で合格ですか？",
+      answer:
+        "英検CSEスコアという共通の物差しで判定されます。合格に必要なスコアは、一次試験・二次試験の順に、準2級が1322・406、準2級プラスが1402・427、2級が1520・460です。正答数ではなくスコアで判定されるので、リーディング・ライティング・リスニングのどれか1つが極端に低いと届きにくくなります。",
+    },
+    {
+      question: "全商英検と実用英検は、どちらを受けたほうがいいですか？",
+      answer:
+        "目的によって変わります。全商検定の1級を3種目以上そろえたいなら、商業高校の授業内容と重なる全商英検が取り組みやすい検定です。大学の推薦入試や総合型選抜で英語力を示したい場合は、志望校の募集要項でどちらが評価されるかを確認してください。実用英検では英作文と面接も問われるため、両方受ける場合は全商英検で読む・聞く力を固めてから実用英検に進むと効率的です。",
+    },
+    {
+      question: "面接（二次試験）の対策もオンラインでできますか？",
+      answer:
+        "できます。1対1のオンライン授業なので、本番と同じ流れで面接の練習を繰り返せます。音読から質問への受け答えまで、その場で発音や答え方を直しながら進めます。",
+    },
+    {
+      question: "いつ実施されますか？",
+      answer:
+        "従来型の検定は年3回です。2026年度の第3回は、一次試験（本会場）が2027年1月24日（日）、二次試験が2月28日（日）・3月7日（日）です。学校や塾でまとめて申し込む場合の受付は10月30日〜12月14日です。回ごとの日程は、このページの「試験日程」をご覧ください。",
+    },
+  ],
 };
 
 /** その検定と一緒に受ける人が多い検定。ページ下部の「関連する検定」に出す */
@@ -231,12 +259,13 @@ export const relatedSubjectSlugs: Record<string, string[]> = {
   "zensho-boki": ["zaimu-shohyo-bunseki", "nissho-boki", "dentaku-jitsumu"],
   "business-joho": ["programming", "bunsho-sakusei", "zensho-boki"],
   programming: ["business-joho", "bunsho-sakusei", "zensho-boki"],
-  "zensho-eiken": ["shogyo-keizai", "bunsho-sakusei", "zensho-boki"],
+  "zensho-eiken": ["eiken", "shogyo-keizai", "bunsho-sakusei"],
   "bunsho-sakusei": ["business-joho", "programming", "dentaku-jitsumu"],
   "dentaku-jitsumu": ["zensho-boki", "business-joho", "bunsho-sakusei"],
   "shogyo-keizai": ["zensho-eiken", "zensho-boki", "zaimu-shohyo-bunseki"],
   "zaimu-shohyo-bunseki": ["zensho-boki", "nissho-boki", "shogyo-keizai"],
   "nissho-boki": ["zensho-boki", "zaimu-shohyo-bunseki", "business-joho"],
+  eiken: ["zensho-eiken", "shogyo-keizai", "bunsho-sakusei"],
 };
 
 /**
@@ -257,4 +286,5 @@ export const relatedColumnSlugs: Record<string, string[]> = {
   "shogyo-keizai": [roadmapColumn, "zensho-eiken-vs-eiken"],
   "zaimu-shohyo-bunseki": [roadmapColumn],
   "nissho-boki": [roadmapColumn],
+  eiken: ["zensho-eiken-vs-eiken", roadmapColumn],
 };

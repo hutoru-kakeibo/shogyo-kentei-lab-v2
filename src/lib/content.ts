@@ -33,6 +33,8 @@ export const socialLinks = [
  */
 export const subjectSearchNames: Record<string, string> = {
   "zensho-eiken": "全商英検（英語検定）",
+  // 「英検」で検索されることがほとんどなので、通称を前に出す
+  eiken: "英検（実用英語技能検定）",
 };
 
 /**
@@ -43,6 +45,7 @@ export const subjectSearchNames: Record<string, string> = {
 export const subjectMetaTitles: Record<string, string> = {
   "zensho-eiken": "全商英検（英語検定）とは？2026年度の日程・合格点・英検との違い",
   "zensho-boki": "全商簿記実務検定とは？2026年度の日程・級・合格基準と勉強法",
+  eiken: "英検準2級・準2級プラス・2級の対策｜試験内容・合格点・2026年度の日程",
 };
 
 /** 検定ページの「試験日程」欄の文言（日程そのものは src/lib/exam-schedule.ts） */
@@ -317,7 +320,15 @@ export const courseSearch = {
     },
     {
       name: "その他の検定",
-      items: [{ name: "日商簿記検定", href: "/subjects/nissho-boki", ready: true }],
+      items: [
+        { name: "日商簿記検定", href: "/subjects/nissho-boki", ready: true },
+        // 料金を管理画面で入れるまでは下書き（ready: false）。公開するときに true にする
+        {
+          name: "実用英検（準2級・準2級プラス・2級）",
+          href: "/subjects/eiken",
+          ready: false,
+        },
+      ],
     },
     {
       name: "進学・就職対策",
