@@ -59,6 +59,47 @@ export const examScheduleSection = {
 };
 
 /**
+ * 映像授業（商業検定ラボ-オンデマンド。別のサイト）への案内。
+ * 料金・講座の中身はオンデマンド側が正本なので、ここには書かない
+ */
+export const ondemand = {
+  url: "https://ondemand.shogyo-kentei-lab-academy.com",
+  navLabel: "映像授業（オンデマンド）",
+  /** ウェブサイトの検定ページ（slug） → オンデマンドの検定コード。講座がある検定だけ */
+  examBySubject: {
+    "dentaku-jitsumu": "bizkeisan",
+    "zensho-eiken": "eigo",
+  } as Record<string, string>,
+};
+
+/** オンデマンドへのリンク。どこから移ったか分かるよう utm を付ける */
+export function ondemandHref(path: string, campaign: string) {
+  const url = new URL(path, ondemand.url);
+  url.searchParams.set("utm_source", "shogyo-kentei-lab");
+  url.searchParams.set("utm_medium", "referral");
+  url.searchParams.set("utm_campaign", campaign);
+  return url.toString();
+}
+
+/** 検定ページの「学び方をえらぶ」 */
+export const learningChoice = {
+  title: "学び方をえらぶ",
+  lead: "商業検定ラボでは、個別指導と映像授業の2つの学び方があります。",
+  tutoring: {
+    name: "個別指導",
+    forWhom: "つまずいているところがある人、試験まで時間がない人に",
+    description: "講師と1対1のオンライン授業。わからないところを、その場で質問できます。",
+    ctaLabel: "無料体験を申し込む",
+  },
+  video: {
+    name: "映像授業",
+    forWhom: "自分のペースで進められる人に",
+    description: "スマホで見られる講義動画。好きな時間に、何度でも見直せます。",
+    ctaLabel: "映像授業を見る",
+  },
+};
+
+/**
  * ハンバーガーメニューの中身。
  * ページ内アンカーは、検定詳細ページ・申込ページなど下層ページからも機能するよう
  * 必ず "/#..." の形にする（"#..." のままだと、そのページ内でハッシュが足されるだけで
@@ -68,6 +109,7 @@ export const globalNav = [
   { label: "商業検定ラボについて", href: "/#about" },
   { label: "選ばれる理由", href: "/#strong-point" },
   { label: "検定を探す", href: "/subjects" },
+  { label: ondemand.navLabel, href: ondemandHref("/", "menu") },
   { label: "受講の流れ", href: "/#flow" },
   { label: "講師紹介", href: "/#teachers" },
   { label: "合格者の声", href: "/#voice" },

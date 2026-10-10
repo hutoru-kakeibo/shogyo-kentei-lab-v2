@@ -10,6 +10,9 @@ import { getArticleSummaries } from "@/lib/articles";
 import {
   examScheduleSection,
   flow,
+  learningChoice,
+  ondemand,
+  ondemandHref,
   siteMeta,
   subjectIndex,
   subjectMetaTitles,
@@ -110,6 +113,8 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
   // 今年度の試験日程（公式の要項から転記したものがある検定だけ）。過ぎた回・次の回を日本時間で判定する
   const schedule = examSchedules[slug];
   const statuses = schedule ? roundStatuses(schedule.rounds, todayInJapan()) : [];
+  // 映像授業（オンデマンド）に講座がある検定のときだけ、そのコード
+  const ondemandExam = ondemand.examBySubject[slug];
 
   return (
     <main>
@@ -318,6 +323,55 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
 
         <p className="mt-4 text-[11px] leading-relaxed text-ink-muted">{subject.pricing.note}</p>
       </section>
+
+      {/* 学び方をえらぶ。映像授業（オンデマンド）に講座がある検定だけ、個別指導と並べて見せる */}
+      {ondemandExam ? (
+        <section className="bg-white px-5 py-10">
+          <SectionTitle tone={subject.tone}>{learningChoice.title}</SectionTitle>
+          <p className="mt-4 text-[13px] leading-relaxed text-ink-muted">{learningChoice.lead}</p>
+          <ul className="mt-5 space-y-3">
+            {[
+              { ...learningChoice.tutoring, href: flow.ctaHref, external: false },
+              {
+                ...learningChoice.video,
+                href: ondemandHref(`/exams/${ondemandExam}`, "subject_page"),
+                external: true,
+              },
+            ].map((choice) => (
+              <li
+                key={choice.name}
+                className="rounded-2xl bg-canvas p-4 ring-1 ring-sakura-100"
+              >
+                <p className="font-round text-[16px] font-bold text-ink">{choice.name}</p>
+                <p className={`mt-1 text-[12px] font-bold ${accentTone[subject.tone]}`}>
+                  {choice.forWhom}
+                </p>
+                <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">
+                  {choice.description}
+                </p>
+                {choice.external ? (
+                  <a
+                    href={choice.href}
+                    className="mt-3 flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 font-round text-[14px] font-bold text-ink ring-1 ring-sakura-200"
+                  >
+                    {choice.ctaLabel}
+                    <ArrowRight className="size-4" strokeWidth={2.5} />
+                  </a>
+                ) : (
+                  <Link
+                    href={choice.href}
+                    data-cta="subject_choice"
+                    className="mt-3 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-5 py-3 font-round text-[14px] font-bold text-white shadow-md shadow-sakura-600/20"
+                  >
+                    {choice.ctaLabel}
+                    <ArrowRight className="size-4" strokeWidth={2.5} />
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {/* つまずきポイント */}
       <section className="bg-gradient-to-b from-lemon-50 to-sakura-50 px-5 py-10">
