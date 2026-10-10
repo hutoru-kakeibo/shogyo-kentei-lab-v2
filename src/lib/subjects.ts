@@ -542,9 +542,9 @@ export const subjects: Subject[] = [
     pricing: {
       lead: "1対1の個別指導の料金です。受験する級に合わせて選べます。",
       plans: [
-        { grade: "準2級", price: "要入力", unit: "円 / 1時間" },
-        { grade: "準2級プラス", price: "要入力", unit: "円 / 1時間" },
-        { grade: "2級", price: "要入力", unit: "円 / 1時間" },
+        { grade: "準2級", price: "3,400", unit: "円 / 1時間" },
+        { grade: "準2級プラス", price: "3,400", unit: "円 / 1時間" },
+        { grade: "2級", price: "3,900", unit: "円 / 1時間" },
       ],
       options: [],
       note: "※ 受講回数やスケジュールは相談しながら決められます。詳しくは無料体験のときにご案内します。",

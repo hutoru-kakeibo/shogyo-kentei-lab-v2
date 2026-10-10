@@ -322,11 +322,10 @@ export const courseSearch = {
       name: "その他の検定",
       items: [
         { name: "日商簿記検定", href: "/subjects/nissho-boki", ready: true },
-        // 料金を管理画面で入れるまでは下書き（ready: false）。公開するときに true にする
         {
           name: "実用英検（準2級・準2級プラス・2級）",
           href: "/subjects/eiken",
-          ready: false,
+          ready: true,
         },
       ],
     },

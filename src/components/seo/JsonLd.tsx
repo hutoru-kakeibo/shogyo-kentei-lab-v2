@@ -48,6 +48,7 @@ export function OrganizationJsonLd() {
           "全商英語検定",
           "全商ビジネス文書実務検定",
           "日商簿記検定",
+          "実用英語技能検定",
         ],
       }}
     />
