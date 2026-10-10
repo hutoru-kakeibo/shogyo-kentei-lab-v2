@@ -55,8 +55,12 @@ export function SiteHeader() {
           onClick={() => setOpen(false)}
           aria-hidden="true"
         />
+        {/* 項目が増えてスマホの画面に収まらなくなったため、メニューの中だけスクロールさせる。
+            背面のスクロールは止めているので、ここにスクロールが無いと下の項目に届かない。
+            高さは「画面 − ヘッダー（4rem） − 画面下の固定ボタン（約5rem＋ホームバー分）」までにして、
+            一番下の項目が固定ボタンに隠れないようにしている */}
         <nav
-          className={`absolute inset-x-0 top-0 mx-auto max-w-[480px] rounded-b-3xl bg-gradient-to-b from-sakura-100 to-white p-5 shadow-xl transition duration-300 ${
+          className={`absolute inset-x-0 top-0 mx-auto max-h-[calc(100dvh-9rem-env(safe-area-inset-bottom))] max-w-[480px] overflow-y-auto overscroll-contain rounded-b-3xl bg-gradient-to-b from-sakura-100 to-white p-5 shadow-xl transition duration-300 ${
             open ? "translate-y-0" : "-translate-y-4"
           }`}
         >
