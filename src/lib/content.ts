@@ -280,6 +280,14 @@ export const teachers = {
   title: "講師紹介",
   englishTitle: "TEACHERS",
   lead: "ほとんどが商業高校の出身。\nつまずくポイントを知っている先生が教えます。",
+  /** トップページに出す人数。残りは講師一覧ページ（/teachers）だけに出る */
+  homeLimit: 4,
+  moreLabel: "もっと見る",
+  moreHref: "/teachers",
+  /** 講師一覧ページ（/teachers）のタイトルと説明文 */
+  metaTitle: "講師紹介｜商業高校出身の先生が教えます",
+  metaDescription:
+    "商業検定ラボの講師紹介ページです。商業高校出身の先生を中心に、全商検定を教える講師の出身校・保有資格・メッセージを紹介しています。",
   /** 各項目のラベル */
   labels: {
     school: "出身校",
