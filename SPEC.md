@@ -344,10 +344,10 @@ DBの取得に失敗しても、各 `lib` はフォールバック（`content.ts
 | `cta_click` | `/trial` へのリンクが押されたとき（全ページ共通で拾う） | `cta_location`：`bottom_nav` / `home_flow` / `subject_page` / `subject_index` / `column_cta`。目印の無いリンクは `column_body` などページの種類 |
 | `form_start` | フォームのどれかの項目を最初に操作したとき（1回だけ） | `form_kind`、`first_field` |
 | `form_error` | 送信時の入力エラー、送信の失敗、選んだ日時が埋まっていたとき | `form_kind`、`error_type`（`validation` / `slot_unavailable` / `send_failed`）、`field`（入力エラーの最初の項目名） |
-| `form_step` | 「次へ」でステップ2・3に進んだとき | `form_kind`、`step`（進んだ先のステップ番号 2 / 3）。**`step` はGA4のカスタム定義に未登録**（登録するとステップ別の人数が見られる） |
+| `form_step` | 「次へ」でステップ2・3に進んだとき | `form_kind`、`step`（進んだ先のステップ番号 2 / 3）。`step` はGA4のカスタム定義に登録済み（2026-10-19） |
 | `generate_lead` | 申し込みの保存に成功したとき（GA4の推奨イベント。**GA側でキーイベントに登録済み**、カウントはイベントごと） | `form_kind`、`subject`（検定名） |
 
-- GA側の設定（2026-10-02 済み）：上の表のパラメータ5つ（`cta_location` / `form_kind` / `first_field` / `error_type` / `field`）をイベント範囲のカスタムディメンションとして登録。イベントデータの保持期間は14か月
+- GA側の設定（2026-10-02 済み、`step` は 2026-10-19 に追加）：上の表のパラメータ6つ（`cta_location` / `form_kind` / `first_field` / `error_type` / `field` / `step`）をイベント範囲のカスタムディメンションとして登録。イベントデータの保持期間は14か月
 - パラメータを新しく増やしたら、GA4の「カスタム定義」にも登録しないとレポートに出ない
 - ボタンの「押された場所」は、リンク（または親要素）の `data-cta` 属性で付ける。新しく無料体験ボタンを置いたら `data-cta` を付けること
 - **かご落ち率** ＝ 1 − `generate_lead` ÷ `form_start`、**ボタンのクリック率** ＝ `cta_click` ÷ 訪問数（場所別に比較できる）
