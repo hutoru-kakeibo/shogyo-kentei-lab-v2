@@ -18,7 +18,6 @@ export type TrialApplicationInput = {
   gradeYear: string;
   school: string;
   email: string;
-  tel: string;
   preferredDate: string;
   preferredTime: string;
   message: string;
@@ -127,7 +126,6 @@ export async function submitTrialApplication(
     grade_year: input.gradeYear,
     school: input.school.trim(),
     email: input.email.trim(),
-    tel: input.tel.trim() || null,
     preferred_date: input.preferredDate,
     preferred_time: input.preferredTime,
     message: input.message.trim() || null,

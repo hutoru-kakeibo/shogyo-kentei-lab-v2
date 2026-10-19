@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { CircleAlert, CircleCheck, Send } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, CircleAlert, CircleCheck, Send } from "lucide-react";
 import { courseSearch, lessonForm, trialForm } from "@/lib/content";
 import { submitTrialApplication, type ApplicationKind } from "@/lib/trial-actions";
 import { trackEvent } from "@/lib/analytics";
@@ -25,7 +25,6 @@ type Values = {
   gradeYear: string;
   school: string;
   email: string;
-  tel: string;
   /** 希望日（YYYY-MM-DD） */
   preferredDate: string;
   /** 希望時間（HH:mm） */
@@ -44,7 +43,6 @@ const initialValues: Values = {
   gradeYear: "",
   school: "",
   email: "",
-  tel: "",
   preferredDate: "",
   preferredTime: "",
   message: "",
@@ -60,6 +58,7 @@ const copyByKind = {
     messageLabel: "相談したいこと",
     messagePlaceholder: "つまずいているところ、検定日までの残り期間など",
     submitLabel: trialForm.submitLabel,
+    steps: trialForm.steps,
     done: trialForm.done,
   },
   lesson: {
@@ -68,9 +67,63 @@ const copyByKind = {
     messageLabel: lessonForm.messageLabel,
     messagePlaceholder: lessonForm.messagePlaceholder,
     submitLabel: lessonForm.submitLabel,
+    steps: lessonForm.steps,
     done: lessonForm.done,
   },
 } as const;
+
+/** 各ステップで入力チェックする項目（並びはエラー時にスクロールする順） */
+const stepFields: (keyof Values)[][] = [
+  ["subject", "targetGrade"],
+  ["name", "gradeYear", "school", "email"],
+  ["preferredDate", "preferredTime", "consent"],
+];
+const lastStep = stepFields.length - 1;
+
+/** いま何番目のステップかを示す、上部の丸と線の目印 */
+function StepIndicator({ labels, current }: { labels: string[]; current: number }) {
+  return (
+    <ol aria-label="お申し込みの手順" className="flex items-start">
+      {labels.map((label, index) => {
+        const finished = index < current;
+        const active = index === current;
+        return (
+          <li
+            key={label}
+            aria-current={active ? "step" : undefined}
+            className="relative flex flex-1 flex-col items-center"
+          >
+            {/* 前のステップとのあいだの線 */}
+            {index > 0 ? (
+              <span
+                aria-hidden="true"
+                className={`absolute right-[calc(50%+1.75rem)] top-5 h-0.5 w-[calc(100%-3.5rem)] -translate-y-1/2 rounded-full ${
+                  index <= current ? "bg-sakura-400" : "bg-sakura-100"
+                }`}
+              />
+            ) : null}
+            <span
+              className={`grid size-10 place-items-center rounded-full font-round text-[15px] font-bold ${
+                finished || active
+                  ? "bg-sakura-500 text-white shadow-md shadow-sakura-600/25"
+                  : "bg-sakura-50 text-ink-muted ring-2 ring-sakura-100"
+              }`}
+            >
+              {finished ? <Check className="size-5" strokeWidth={3} /> : index + 1}
+            </span>
+            <span
+              className={`mt-1.5 text-[12px] font-bold ${
+                finished || active ? "text-sakura-600" : "text-ink-muted"
+              }`}
+            >
+              {label}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 /** 検定の選択肢は「検定を探す」の一覧から生成する */
 const subjectOptions = [
@@ -127,6 +180,10 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [sendError, setSendError] = useState("");
   const [done, setDone] = useState(false);
+  // いま表示しているステップ（0始まり）
+  const [step, setStep] = useState(0);
+  // ステップを切り替えたとき、目印の位置まで画面を戻すための目印
+  const topRef = useRef<HTMLDivElement>(null);
   // 「その日時は埋まった」エラーのあと、日程ピッカーを丸ごと作り直して
   // 最新の空き状況を取得し直させるためのキー
   const [pickerKey, setPickerKey] = useState(0);
@@ -166,19 +223,58 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
     return next;
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const nextErrors = validate();
+  const scrollToTop = () => {
+    topRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+  };
+
+  const goToStep = (next: number) => {
+    setStep(next);
+    // 切り替え後の描画を待ってから、ステップの目印まで戻す
+    requestAnimationFrame(scrollToTop);
+  };
+
+  /**
+   * 入力エラーを表示し、最初のエラー項目があるステップに移って、その項目までスクロールする。
+   * scope に渡したステップの項目だけを見る（「次へ」では今のステップ、送信では全部）
+   */
+  const showErrors = (scope: number[]) => {
+    const all = validate();
+    const fields = scope.flatMap((index) => stepFields[index]);
+    const nextErrors = Object.fromEntries(
+      fields.filter((key) => all[key]).map((key) => [key, all[key]]),
+    ) as Partial<Record<keyof Values, string>>;
     setErrors(nextErrors);
 
-    if (Object.keys(nextErrors).length > 0) {
-      // 最初のエラー項目までスクロールして気づけるようにする
-      const firstKey = Object.keys(nextErrors)[0];
-      // どの項目で止まる人が多いかを見るため、最初に引っかかった項目名だけ送る（入力内容は送らない）
-      trackEvent("form_error", { form_kind: kind, error_type: "validation", field: firstKey });
+    const firstKey = fields.find((key) => nextErrors[key]);
+    if (!firstKey) return false;
+
+    // どの項目で止まる人が多いかを見るため、最初に引っかかった項目名だけ送る（入力内容は送らない）
+    trackEvent("form_error", { form_kind: kind, error_type: "validation", field: firstKey });
+    const errorStep = stepFields.findIndex((keys) => keys.includes(firstKey));
+    setStep(errorStep);
+    requestAnimationFrame(() => {
       document.getElementById(firstKey)?.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+    return true;
+  };
+
+  const handleNext = () => {
+    if (showErrors([step])) return;
+    const next = step + 1;
+    // どのステップまで進んだかを数え、途中でやめる人がどこで多いかを見る
+    trackEvent("form_step", { form_kind: kind, step: next + 1 });
+    goToStep(next);
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    // 途中のステップで Enter キーが押されたときは、送信せずに次へ進む
+    if (step < lastStep) {
+      handleNext();
       return;
     }
+
+    if (showErrors(stepFields.map((_, index) => index))) return;
 
     setSubmitting(true);
     setSendError("");
@@ -232,203 +328,205 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-5">
-      {/* 受けたい（受講する）検定 */}
-      <div>
-        <FieldLabel htmlFor="subject" label={copy.subjectLabel} required />
-        <select
-          id="subject"
-          value={values.subject}
-          onChange={(event) => update("subject", event.target.value)}
-          aria-invalid={Boolean(errors.subject)}
-          aria-describedby={errors.subject ? "subject-error" : undefined}
-          className={inputClass}
-        >
-          <option value="">選択してください</option>
-          {subjectOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-        <ErrorText id="subject-error" message={errors.subject} />
+    <form onSubmit={handleSubmit} noValidate>
+      <div ref={topRef} className="scroll-mt-20">
+        <StepIndicator labels={copy.steps.map((item) => item.label)} current={step} />
       </div>
 
-      {/* 受験予定の級 */}
-      <div>
-        <FieldLabel htmlFor="targetGrade" label="受験予定の級" required />
-        <select
-          id="targetGrade"
-          value={values.targetGrade}
-          onChange={(event) => update("targetGrade", event.target.value)}
-          aria-invalid={Boolean(errors.targetGrade)}
-          aria-describedby={errors.targetGrade ? "targetGrade-error" : undefined}
-          className={inputClass}
-        >
-          <option value="">選択してください</option>
-          {trialForm.targetGrades.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-        <ErrorText id="targetGrade-error" message={errors.targetGrade} />
-      </div>
+      <div className="mt-5 rounded-3xl bg-white p-5 shadow-md shadow-sakura-600/10 ring-1 ring-sakura-100">
+        <h2 className="font-round text-[16px] font-bold text-ink">{copy.steps[step].heading}</h2>
 
-      {/* お名前 */}
-      <div>
-        <FieldLabel htmlFor="name" label="お名前" required />
-        <input
-          id="name"
-          type="text"
-          autoComplete="name"
-          placeholder="商業 花子"
-          value={values.name}
-          onChange={(event) => update("name", event.target.value)}
-          aria-invalid={Boolean(errors.name)}
-          aria-describedby={errors.name ? "name-error" : undefined}
-          className={inputClass}
-        />
-        <ErrorText id="name-error" message={errors.name} />
-      </div>
+        {/* ステップ1：検定と相談したいこと。ほかのステップは隠すだけで、入力内容は残る */}
+        <div hidden={step !== 0} className="mt-5 space-y-5">
+          {/* 受けたい（受講する）検定 */}
+          <div>
+            <FieldLabel htmlFor="subject" label={copy.subjectLabel} required />
+            <select
+              id="subject"
+              value={values.subject}
+              onChange={(event) => update("subject", event.target.value)}
+              aria-invalid={Boolean(errors.subject)}
+              aria-describedby={errors.subject ? "subject-error" : undefined}
+              className={inputClass}
+            >
+              <option value="">選択してください</option>
+              {subjectOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <ErrorText id="subject-error" message={errors.subject} />
+          </div>
 
-      {/* ふりがな */}
-      <div>
-        <FieldLabel htmlFor="kana" label="ふりがな" />
-        <input
-          id="kana"
-          type="text"
-          placeholder="しょうぎょう はなこ"
-          value={values.kana}
-          onChange={(event) => update("kana", event.target.value)}
-          className={inputClass}
-        />
-      </div>
+          {/* 受験予定の級 */}
+          <div>
+            <FieldLabel htmlFor="targetGrade" label="受験予定の級" required />
+            <select
+              id="targetGrade"
+              value={values.targetGrade}
+              onChange={(event) => update("targetGrade", event.target.value)}
+              aria-invalid={Boolean(errors.targetGrade)}
+              aria-describedby={errors.targetGrade ? "targetGrade-error" : undefined}
+              className={inputClass}
+            >
+              <option value="">選択してください</option>
+              {trialForm.targetGrades.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <ErrorText id="targetGrade-error" message={errors.targetGrade} />
+          </div>
 
-      {/* 学年 */}
-      <div>
-        <FieldLabel htmlFor="gradeYear" label="学年" required />
-        <select
-          id="gradeYear"
-          value={values.gradeYear}
-          onChange={(event) => update("gradeYear", event.target.value)}
-          aria-invalid={Boolean(errors.gradeYear)}
-          aria-describedby={errors.gradeYear ? "gradeYear-error" : undefined}
-          className={inputClass}
-        >
-          <option value="">選択してください</option>
-          {trialForm.gradeYears.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-        <ErrorText id="gradeYear-error" message={errors.gradeYear} />
-      </div>
-
-      {/* 学校名 */}
-      <div>
-        <FieldLabel htmlFor="school" label="学校名" required />
-        <input
-          id="school"
-          type="text"
-          placeholder="○○県立○○商業高等学校"
-          value={values.school}
-          onChange={(event) => update("school", event.target.value)}
-          aria-invalid={Boolean(errors.school)}
-          aria-describedby={errors.school ? "school-error" : undefined}
-          className={inputClass}
-        />
-        <ErrorText id="school-error" message={errors.school} />
-      </div>
-
-      {/* メールアドレス */}
-      <div>
-        <FieldLabel htmlFor="email" label="メールアドレス" required />
-        <input
-          id="email"
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          placeholder="example@mail.com"
-          value={values.email}
-          onChange={(event) => update("email", event.target.value)}
-          aria-invalid={Boolean(errors.email)}
-          aria-describedby={errors.email ? "email-error" : undefined}
-          className={inputClass}
-        />
-        <ErrorText id="email-error" message={errors.email} />
-      </div>
-
-      {/* 電話番号 */}
-      <div>
-        <FieldLabel htmlFor="tel" label="電話番号" />
-        <input
-          id="tel"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder="09012345678"
-          value={values.tel}
-          onChange={(event) => update("tel", event.target.value)}
-          className={inputClass}
-        />
-      </div>
-
-      {/* 希望日時 */}
-      <div>
-        <FieldLabel htmlFor="preferredDate" label={copy.scheduleLabel} required />
-        <div id="preferredDate">
-          <TrialDateTimePicker
-            key={pickerKey}
-            date={values.preferredDate}
-            time={values.preferredTime}
-            onDateChange={(next) => update("preferredDate", next)}
-            onTimeChange={(next) => update("preferredTime", next)}
-            dateError={errors.preferredDate}
-            timeError={errors.preferredTime}
-          />
+          {/* 相談したいこと／先生に伝えたいこと */}
+          <div>
+            <FieldLabel htmlFor="message" label={copy.messageLabel} />
+            <textarea
+              id="message"
+              rows={4}
+              placeholder={copy.messagePlaceholder}
+              value={values.message}
+              onChange={(event) => update("message", event.target.value)}
+              className={`${inputClass} resize-y`}
+            />
+          </div>
         </div>
-      </div>
 
-      {/* 相談したいこと／先生に伝えたいこと */}
-      <div>
-        <FieldLabel htmlFor="message" label={copy.messageLabel} />
-        <textarea
-          id="message"
-          rows={4}
-          placeholder={copy.messagePlaceholder}
-          value={values.message}
-          onChange={(event) => update("message", event.target.value)}
-          className={`${inputClass} resize-y`}
-        />
-      </div>
+        {/* ステップ2：本人の情報 */}
+        <div hidden={step !== 1} className="mt-5 space-y-5">
+          {/* お名前 */}
+          <div>
+            <FieldLabel htmlFor="name" label="お名前" required />
+            <input
+              id="name"
+              type="text"
+              autoComplete="name"
+              placeholder="商業 花子"
+              value={values.name}
+              onChange={(event) => update("name", event.target.value)}
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={errors.name ? "name-error" : undefined}
+              className={inputClass}
+            />
+            <ErrorText id="name-error" message={errors.name} />
+          </div>
 
-      {/* 保護者の同意 */}
-      <div id="consent" className="rounded-2xl bg-lemon-50 p-4 ring-1 ring-lemon-200">
-        <label className="flex items-start gap-3">
-          <input
-            type="checkbox"
-            checked={values.consent}
-            onChange={(event) => update("consent", event.target.checked)}
-            aria-invalid={Boolean(errors.consent)}
-            aria-describedby={errors.consent ? "consent-error" : undefined}
-            className="mt-0.5 size-5 shrink-0 accent-sakura-500"
-          />
-          <span className="text-[13px] leading-relaxed text-ink">{trialForm.consent}</span>
-        </label>
-        <ErrorText id="consent-error" message={errors.consent} />
-        <p className="mt-2 text-[12px] leading-relaxed text-ink-muted">
-          {trialForm.privacyNote.before}
-          <Link
-            href="/privacy"
-            target="_blank"
-            className="font-bold text-sky-600 underline underline-offset-2"
-          >
-            {trialForm.privacyNote.linkLabel}
-          </Link>
-          {trialForm.privacyNote.after}
-        </p>
+          {/* ふりがな */}
+          <div>
+            <FieldLabel htmlFor="kana" label="ふりがな" />
+            <input
+              id="kana"
+              type="text"
+              placeholder="しょうぎょう はなこ"
+              value={values.kana}
+              onChange={(event) => update("kana", event.target.value)}
+              className={inputClass}
+            />
+          </div>
+
+          {/* 学年 */}
+          <div>
+            <FieldLabel htmlFor="gradeYear" label="学年" required />
+            <select
+              id="gradeYear"
+              value={values.gradeYear}
+              onChange={(event) => update("gradeYear", event.target.value)}
+              aria-invalid={Boolean(errors.gradeYear)}
+              aria-describedby={errors.gradeYear ? "gradeYear-error" : undefined}
+              className={inputClass}
+            >
+              <option value="">選択してください</option>
+              {trialForm.gradeYears.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <ErrorText id="gradeYear-error" message={errors.gradeYear} />
+          </div>
+
+          {/* 学校名 */}
+          <div>
+            <FieldLabel htmlFor="school" label="学校名" required />
+            <input
+              id="school"
+              type="text"
+              placeholder="○○県立○○商業高等学校"
+              value={values.school}
+              onChange={(event) => update("school", event.target.value)}
+              aria-invalid={Boolean(errors.school)}
+              aria-describedby={errors.school ? "school-error" : undefined}
+              className={inputClass}
+            />
+            <ErrorText id="school-error" message={errors.school} />
+          </div>
+
+          {/* メールアドレス */}
+          <div>
+            <FieldLabel htmlFor="email" label="メールアドレス" required />
+            <input
+              id="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="example@mail.com"
+              value={values.email}
+              onChange={(event) => update("email", event.target.value)}
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "email-error" : undefined}
+              className={inputClass}
+            />
+            <ErrorText id="email-error" message={errors.email} />
+          </div>
+        </div>
+
+        {/* ステップ3：希望日時と保護者の同意 */}
+        <div hidden={step !== 2} className="mt-5 space-y-5">
+          {/* 希望日時 */}
+          <div>
+            <FieldLabel htmlFor="preferredDate" label={copy.scheduleLabel} required />
+            <div id="preferredDate">
+              <TrialDateTimePicker
+                key={pickerKey}
+                date={values.preferredDate}
+                time={values.preferredTime}
+                onDateChange={(next) => update("preferredDate", next)}
+                onTimeChange={(next) => update("preferredTime", next)}
+                dateError={errors.preferredDate}
+                timeError={errors.preferredTime}
+              />
+            </div>
+          </div>
+
+          {/* 保護者の同意 */}
+          <div id="consent" className="rounded-2xl bg-lemon-50 p-4 ring-1 ring-lemon-200">
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={values.consent}
+                onChange={(event) => update("consent", event.target.checked)}
+                aria-invalid={Boolean(errors.consent)}
+                aria-describedby={errors.consent ? "consent-error" : undefined}
+                className="mt-0.5 size-5 shrink-0 accent-sakura-500"
+              />
+              <span className="text-[13px] leading-relaxed text-ink">{trialForm.consent}</span>
+            </label>
+            <ErrorText id="consent-error" message={errors.consent} />
+            <p className="mt-2 text-[12px] leading-relaxed text-ink-muted">
+              {trialForm.privacyNote.before}
+              <Link
+                href="/privacy"
+                target="_blank"
+                className="font-bold text-sky-600 underline underline-offset-2"
+              >
+                {trialForm.privacyNote.linkLabel}
+              </Link>
+              {trialForm.privacyNote.after}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* ボット対策の隠し項目。人間には見えず、埋まっていたら自動投稿と判断する */}
@@ -443,24 +541,49 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
         className="absolute left-[-9999px] size-0 opacity-0"
       />
 
-      {sendError ? (
+      {sendError && step === lastStep ? (
         <p
           role="alert"
-          className="flex items-start gap-2 rounded-2xl bg-sakura-100 p-4 text-[13px] font-bold leading-relaxed text-sakura-600"
+          className="mt-5 flex items-start gap-2 rounded-2xl bg-sakura-100 p-4 text-[13px] font-bold leading-relaxed text-sakura-600"
         >
           <CircleAlert className="size-5 shrink-0" strokeWidth={2.5} />
           {sendError}
         </p>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="flex w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-8 py-4 font-round text-base font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5 disabled:opacity-60"
-      >
-        {submitting ? trialForm.submittingLabel : copy.submitLabel}
-        {submitting ? null : <Send className="size-5" strokeWidth={2.5} />}
-      </button>
+      <div className="mt-6 flex gap-3">
+        {step > 0 ? (
+          <button
+            type="button"
+            onClick={() => goToStep(step - 1)}
+            disabled={submitting}
+            className="flex shrink-0 items-center justify-center gap-0.5 rounded-full bg-white px-5 py-4 font-round text-[15px] font-bold text-ink-muted ring-1 ring-sakura-200 transition active:translate-y-0.5 disabled:opacity-60"
+          >
+            <ChevronLeft className="size-4" strokeWidth={3} />
+            {trialForm.backLabel}
+          </button>
+        ) : null}
+
+        {step < lastStep ? (
+          <button
+            type="button"
+            onClick={handleNext}
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-6 py-4 font-round text-base font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5"
+          >
+            {trialForm.nextLabel}
+            <ChevronRight className="size-5" strokeWidth={3} />
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={submitting}
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-4 py-4 font-round text-[15px] font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5 disabled:opacity-60"
+          >
+            {submitting ? trialForm.submittingLabel : copy.submitLabel}
+            {submitting ? null : <Send className="size-5 shrink-0" strokeWidth={2.5} />}
+          </button>
+        )}
+      </div>
     </form>
   );
 }

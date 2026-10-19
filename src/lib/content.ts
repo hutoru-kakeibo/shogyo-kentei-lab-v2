@@ -461,6 +461,15 @@ export const trialForm = {
   optionalLabel: "任意",
   submitLabel: "この内容で申し込む",
   submittingLabel: "送信しています…",
+  /** ステップ切り替えのボタン */
+  nextLabel: "次へ",
+  backLabel: "戻る",
+  /** 入力を3つのステップに分けたときの、上の目印の名前と各ステップの見出し */
+  steps: [
+    { label: "検定", heading: "受けたい検定を教えてください" },
+    { label: "あなたのこと", heading: "あなたのことを教えてください" },
+    { label: "体験日", heading: "体験の日時を選んでください" },
+  ],
   /** 学年の選択肢 */
   gradeYears: ["高校1年", "高校2年", "高校3年", "その他"],
   /** 受験予定の級の選択肢 */
@@ -525,6 +534,11 @@ export const lessonForm = {
   messageLabel: "先生に伝えたいこと",
   messagePlaceholder: "授業で取り組みたいこと、検定日までの残り期間など",
   submitLabel: "この内容で授業を申し込む",
+  steps: [
+    { label: "検定", heading: "受講する検定を教えてください" },
+    { label: "あなたのこと", heading: "あなたのことを教えてください" },
+    { label: "授業日", heading: "授業の日時を選んでください" },
+  ],
   done: {
     title: "お申し込みありがとうございます",
     message:

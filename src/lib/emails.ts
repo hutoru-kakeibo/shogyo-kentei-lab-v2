@@ -31,7 +31,6 @@ function summary(input: TrialApplicationInput) {
     `学年         : ${input.gradeYear}`,
     `学校名       : ${input.school}`,
     `メール       : ${input.email}`,
-    `電話番号     : ${input.tel || "（未記入）"}`,
     lesson ? "先生に伝えたいこと:" : "相談したいこと:",
     input.message ? input.message : "（未記入）",
   ].join("\n");
