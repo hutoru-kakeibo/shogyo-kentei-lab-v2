@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronRight, Menu, X } from "lucide-react";
+import { LogoMark } from "@/components/brand/LogoMark";
 import { globalNav, siteMeta } from "@/lib/content";
 
 export function SiteHeader() {
@@ -21,10 +22,13 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40">
       <div className="relative flex h-16 items-center justify-between gap-2 bg-white/95 pl-4 pr-[3.75rem] shadow-sm shadow-sakura-500/10 backdrop-blur">
-        <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
+        <Link href="/" className="flex items-center gap-1.5" onClick={() => setOpen(false)}>
+          <LogoMark className="size-10 shrink-0" />
           <span className="leading-tight">
+            {/* ロゴの組み方（2026-10-19 決定）：「ラボ」だけ濃いめのピンクにする */}
             <span className="block whitespace-nowrap font-round text-[15px] font-bold tracking-tight text-ink">
-              {siteMeta.name}
+              {siteMeta.name.replace(/ラボ$/, "")}
+              <span className="text-[#e0457b]">ラボ</span>
             </span>
             <span className="block whitespace-nowrap text-[9px] font-medium tracking-tight text-ink-muted">
               {siteMeta.headerTagline}
