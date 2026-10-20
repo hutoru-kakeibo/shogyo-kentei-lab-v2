@@ -80,28 +80,32 @@ export function TeacherList({
                 </dd>
               </div>
 
-              {/* 保有資格 */}
-              <div>
-                <FieldLabel tone={teacher.tone}>{teachers.labels.qualifications}</FieldLabel>
-                <dd className="mt-2 flex flex-wrap gap-2">
-                  {teacher.qualifications.map((qualification) => (
-                    <span
-                      key={qualification}
-                      className={`rounded-full px-3 py-1 text-[11px] font-bold ${tagTone[teacher.tone]}`}
-                    >
-                      {qualification}
-                    </span>
-                  ))}
-                </dd>
-              </div>
+              {/* 保有資格。空の講師は見出しごと出さない */}
+              {teacher.qualifications.length > 0 ? (
+                <div>
+                  <FieldLabel tone={teacher.tone}>{teachers.labels.qualifications}</FieldLabel>
+                  <dd className="mt-2 flex flex-wrap gap-2">
+                    {teacher.qualifications.map((qualification) => (
+                      <span
+                        key={qualification}
+                        className={`rounded-full px-3 py-1 text-[11px] font-bold ${tagTone[teacher.tone]}`}
+                      >
+                        {qualification}
+                      </span>
+                    ))}
+                  </dd>
+                </div>
+              ) : null}
 
-              {/* メッセージ */}
-              <div>
-                <FieldLabel tone={teacher.tone}>{teachers.labels.intro}</FieldLabel>
-                <dd className="mt-1.5 whitespace-pre-line rounded-2xl bg-white p-4 text-[13px] leading-relaxed text-ink-muted shadow-sm">
-                  {teacher.intro}
-                </dd>
-              </div>
+              {/* メッセージ。空の講師は見出しごと出さない */}
+              {teacher.intro ? (
+                <div>
+                  <FieldLabel tone={teacher.tone}>{teachers.labels.intro}</FieldLabel>
+                  <dd className="mt-1.5 whitespace-pre-line rounded-2xl bg-white p-4 text-[13px] leading-relaxed text-ink-muted shadow-sm">
+                    {teacher.intro}
+                  </dd>
+                </div>
+              ) : null}
             </dl>
           </div>
         </li>
