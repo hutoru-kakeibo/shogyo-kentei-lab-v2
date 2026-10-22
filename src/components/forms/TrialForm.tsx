@@ -135,6 +135,16 @@ const subjectOptions = [
   trialForm.undecidedSubject,
 ];
 
+/**
+ * 検定ページの「無料体験」ボタンは /trial?subject=<検定ページのURL名> へ飛ぶ。
+ * そのURL名から、「受けたい検定」の選択肢の名前を引くための対応表
+ */
+const subjectNameBySlug: Record<string, string> = Object.fromEntries(
+  courseSearch.categories.flatMap((category) =>
+    category.items.map((item) => [item.href.replace("/subjects/", ""), item.name]),
+  ),
+);
+
 const inputClass =
   "w-full rounded-xl border border-sakura-200 bg-white px-4 py-3 text-[15px] text-ink outline-none placeholder:text-ink-muted/60 focus:border-sakura-400 focus:ring-2 focus:ring-sakura-200";
 
@@ -175,11 +185,18 @@ type Props = {
   kind?: ApplicationKind;
   /** 授業の申し込みのときに、ページURLの秘密のトークンを渡す */
   lessonToken?: string;
+  /** 検定ページから来たときの、その検定ページのURL名（/trial?subject=… の値） */
+  subjectSlug?: string;
 };
 
-export function TrialForm({ kind = "trial", lessonToken }: Props) {
+export function TrialForm({ kind = "trial", lessonToken, subjectSlug }: Props) {
   const copy = copyByKind[kind];
-  const [values, setValues] = useState<Values>(initialValues);
+  // 検定ページから来たときは、その検定を「受けたい検定」に選んだ状態で始める。
+  // 本人の操作ではないので、入力開始（form_start）には数えない
+  const [values, setValues] = useState<Values>(() => ({
+    ...initialValues,
+    subject: (subjectSlug && subjectNameBySlug[subjectSlug]) || "",
+  }));
   const [errors, setErrors] = useState<Partial<Record<keyof Values, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [sendError, setSendError] = useState("");

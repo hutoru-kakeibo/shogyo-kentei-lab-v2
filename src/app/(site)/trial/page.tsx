@@ -16,7 +16,10 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function TrialPage() {
+// 検定ページから /trial?subject=<検定ページのURL名> で来たとき、その検定を選んだ状態でフォームを出す。
+// URLの値を読むため、このページはアクセスのたびに作る
+export default async function TrialPage({ searchParams }: PageProps<"/trial">) {
+  const { subject } = await searchParams;
   return (
     <main>
       <section className="bg-gradient-to-b from-sakura-100 to-canvas px-5 pb-8 pt-6">
@@ -37,7 +40,7 @@ export default function TrialPage() {
       </section>
 
       <section className="bg-canvas px-5 pb-14 pt-4">
-        <TrialForm />
+        <TrialForm subjectSlug={typeof subject === "string" ? subject : undefined} />
       </section>
     </main>
   );

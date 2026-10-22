@@ -115,6 +115,8 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
   const statuses = schedule ? roundStatuses(schedule.rounds, todayInJapan()) : [];
   // 映像授業（オンデマンド）に講座がある検定のときだけ、そのコード
   const ondemandExam = ondemand.examBySubject[slug];
+  // 無料体験フォームで、この検定を「受けたい検定」に選んだ状態にして開く
+  const trialHref = `${flow.ctaHref}?subject=${slug}`;
 
   return (
     <main>
@@ -331,7 +333,7 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
           <p className="mt-4 text-[13px] leading-relaxed text-ink-muted">{learningChoice.lead}</p>
           <ul className="mt-5 space-y-3">
             {[
-              { ...learningChoice.tutoring, href: flow.ctaHref, external: false },
+              { ...learningChoice.tutoring, href: trialHref, external: false },
               {
                 ...learningChoice.video,
                 href: ondemandHref(`/exams/${ondemandExam}`, "subject_page"),
@@ -502,7 +504,7 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
           まずは1時間の無料体験から。
         </p>
         <Link
-          href={flow.ctaHref}
+          href={trialHref}
           data-cta="subject_page"
           className="mt-6 inline-flex items-center gap-6 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-8 py-4 font-round text-base font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5"
         >
