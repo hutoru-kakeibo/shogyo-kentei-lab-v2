@@ -3,6 +3,7 @@
 import { createAuthClient, isCurrentUserAdmin } from "@/lib/auth/server";
 import { adminTrials } from "@/lib/content";
 import type { ApplicationKind } from "@/lib/trial-actions";
+import { sanitizeVisitSource, type VisitSource } from "@/lib/visit-source";
 
 export type TrialStatus = (typeof adminTrials.statusOptions)[number]["value"];
 
@@ -20,6 +21,10 @@ export type AdminTrialItem = {
   preferredDate: string;
   preferredTime: string;
   message: string | null;
+  /** 知ったきっかけ・流入元（trial_applications_source.sql 実行前と、それより前の申し込みは null） */
+  heardFrom: string | null;
+  firstTouch: VisitSource | null;
+  lastTouch: VisitSource | null;
   status: TrialStatus;
   createdAt: string;
 };
@@ -40,6 +45,10 @@ type TrialRow = {
   preferred_date: string;
   preferred_time: string;
   message: string | null;
+  /** trial_applications_source.sql 実行前の環境では存在しない */
+  heard_from?: string | null;
+  first_touch?: unknown;
+  last_touch?: unknown;
   status: string;
   created_at: string;
 };
@@ -59,6 +68,9 @@ function toAdminItem(row: TrialRow): AdminTrialItem {
     preferredDate: row.preferred_date,
     preferredTime: row.preferred_time,
     message: row.message,
+    heardFrom: row.heard_from ?? null,
+    firstTouch: sanitizeVisitSource(row.first_touch),
+    lastTouch: sanitizeVisitSource(row.last_touch),
     // 想定外の値が入っていた場合は "new" 扱いにして、一覧の表示自体は壊さない
     status: (adminTrials.statusOptions.some((option) => option.value === row.status)
       ? row.status

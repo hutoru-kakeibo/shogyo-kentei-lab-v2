@@ -83,6 +83,12 @@ export default function PrivacyPage() {
 
         <p className="text-right text-[12px] text-ink-muted">
           制定日：{formatArticleDate(privacyPolicy.enactedAt)}
+          {privacyPolicy.revisedAt ? (
+            <>
+              <br />
+              改定日：{formatArticleDate(privacyPolicy.revisedAt)}
+            </>
+          ) : null}
         </p>
       </section>
     </main>

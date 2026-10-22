@@ -7,6 +7,7 @@ import { Check, ChevronLeft, ChevronRight, CircleAlert, CircleCheck, Send } from
 import { courseSearch, lessonForm, trialForm } from "@/lib/content";
 import { submitTrialApplication, type ApplicationKind } from "@/lib/trial-actions";
 import { trackEvent } from "@/lib/analytics";
+import { loadVisitSources } from "@/lib/visit-source";
 
 // 「今日」を基準にカレンダーを組み立てるため、サーバー側では描画しない（表示ズレ防止）
 const TrialDateTimePicker = dynamic(
@@ -30,6 +31,8 @@ type Values = {
   /** 希望時間（HH:mm） */
   preferredTime: string;
   message: string;
+  /** 知ったきっかけ（任意。無料体験だけ） */
+  heardFrom: string;
   consent: boolean;
   /** ボット対策の隠し項目。人間には見えない */
   website: string;
@@ -46,6 +49,7 @@ const initialValues: Values = {
   preferredDate: "",
   preferredTime: "",
   message: "",
+  heardFrom: "",
   consent: false,
   website: "",
 };
@@ -279,7 +283,16 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
     setSubmitting(true);
     setSendError("");
 
-    const result = await submitTrialApplication({ ...values, kind, lessonToken });
+    // どこから来たか（ブラウザが覚えていた流入元）を、無料体験の申し込みと一緒に保存する
+    const sources = kind === "trial" ? loadVisitSources() : { first: null, last: null };
+    const result = await submitTrialApplication({
+      ...values,
+      heardFrom: kind === "trial" ? values.heardFrom : "",
+      kind,
+      lessonToken,
+      firstTouch: sources.first,
+      lastTouch: sources.last,
+    });
 
     setSubmitting(false);
 
@@ -304,7 +317,12 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
     }
 
     // GA4 の推奨イベント名。管理画面で「キーイベント（コンバージョン）」に設定して使う
-    trackEvent("generate_lead", { form_kind: kind, subject: values.subject });
+    // heard_from は選択肢の文言だけ（個人を特定する情報ではない）。未回答は "none"
+    trackEvent("generate_lead", {
+      form_kind: kind,
+      subject: values.subject,
+      ...(kind === "trial" ? { heard_from: values.heardFrom || "none" } : {}),
+    });
     setDone(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -482,7 +500,7 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
           </div>
         </div>
 
-        {/* ステップ3：希望日時と保護者の同意 */}
+        {/* ステップ3：希望日時・知ったきっかけ・保護者の同意 */}
         <div hidden={step !== 2} className="mt-5 space-y-5">
           {/* 希望日時 */}
           <div>
@@ -499,6 +517,26 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
               />
             </div>
           </div>
+
+          {/* 知ったきっかけ（任意。無料体験だけ） */}
+          {kind === "trial" ? (
+            <div>
+              <FieldLabel htmlFor="heardFrom" label={trialForm.heardFrom.label} />
+              <select
+                id="heardFrom"
+                value={values.heardFrom}
+                onChange={(event) => update("heardFrom", event.target.value)}
+                className={inputClass}
+              >
+                <option value="">選択してください</option>
+                {trialForm.heardFrom.options.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
 
           {/* 保護者の同意 */}
           <div id="consent" className="rounded-2xl bg-lemon-50 p-4 ring-1 ring-lemon-200">
@@ -564,8 +602,13 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
           </button>
         ) : null}
 
+        {/*
+          「次へ」と「申し込む」は key で別のボタンにする。同じボタンを使い回すと、
+          最後のステップへ進んだ瞬間に押したボタンが送信ボタンに変わり、そのまま送信（入力チェック）まで動いてしまうため
+        */}
         {step < lastStep ? (
           <button
+            key="next"
             type="button"
             onClick={handleNext}
             className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-6 py-4 font-round text-base font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5"
@@ -575,6 +618,7 @@ export function TrialForm({ kind = "trial", lessonToken }: Props) {
           </button>
         ) : (
           <button
+            key="submit"
             type="submit"
             disabled={submitting}
             className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-4 py-4 font-round text-[15px] font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5 disabled:opacity-60"

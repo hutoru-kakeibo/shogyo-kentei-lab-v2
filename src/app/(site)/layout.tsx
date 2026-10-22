@@ -2,6 +2,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { ScrollTopButton } from "@/components/layout/ScrollTopButton";
 import { Analytics } from "@/components/analytics/Analytics";
+import { VisitSourceRecorder } from "@/components/analytics/VisitSourceRecorder";
 
 /**
  * 生徒向けページ共通のレイアウト（旧ルートレイアウトの中身）。
@@ -18,6 +19,7 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
       <ScrollTopButton />
       <BottomNav />
       <Analytics />
+      <VisitSourceRecorder />
     </div>
   );
 }

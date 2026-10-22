@@ -5,6 +5,7 @@ import { adminTrials } from "@/lib/content";
 import { getTrialForAdmin } from "@/lib/admin/trial-actions";
 import { TrialStatusForm } from "@/components/admin/TrialStatusForm";
 import { TrialKindBadge } from "@/components/admin/TrialKindBadge";
+import type { VisitSource } from "@/lib/visit-source";
 
 function FieldRow({ label, value }: { label: string; value: string }) {
   return (
@@ -15,6 +16,26 @@ function FieldRow({ label, value }: { label: string; value: string }) {
       </dd>
     </div>
   );
+}
+
+/**
+ * 流入元を読みやすい文に直す。例:
+ *   SNS（instagram / lab_profile）
+ *   参照元：l.instagram.com　最初のページ：/
+ *   2026/10/22 21:03:15
+ */
+function formatSource(source: VisitSource | null) {
+  if (!source) return adminTrials.noSource;
+  const medium = adminTrials.sourceMediumLabels[source.medium] ?? source.medium;
+  const detail = [source.source === "direct" ? "" : source.source, source.campaign].filter(Boolean).join(" / ");
+  const lines = [
+    detail ? `${medium || "その他"}（${detail}）` : medium || "その他",
+    [source.referrer && `参照元：${source.referrer}`, source.landing && `最初のページ：${source.landing}`]
+      .filter(Boolean)
+      .join("　"),
+    source.at ? new Date(source.at).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }) : "",
+  ];
+  return lines.filter(Boolean).join("\n");
 }
 
 export default async function AdminTrialDetailPage({
@@ -64,6 +85,13 @@ export default async function AdminTrialDetailPage({
           value={`${item.preferredDate} ${item.preferredTime}`}
         />
         <FieldRow label={fields.message} value={item.message || adminTrials.noMessage} />
+        {item.kind === "trial" ? (
+          <>
+            <FieldRow label={fields.heardFrom} value={item.heardFrom || adminTrials.noHeardFrom} />
+            <FieldRow label={fields.firstTouch} value={formatSource(item.firstTouch)} />
+            <FieldRow label={fields.lastTouch} value={formatSource(item.lastTouch)} />
+          </>
+        ) : null}
         <FieldRow label={fields.createdAt} value={new Date(item.createdAt).toLocaleString("ja-JP")} />
       </dl>
 

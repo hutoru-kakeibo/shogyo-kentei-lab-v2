@@ -150,7 +150,7 @@ website2/
 |---|---|---|
 | 1 | 検定 | 受けたい検定・受験予定の級・相談したいこと |
 | 2 | あなたのこと | お名前・ふりがな・学年・学校名・メールアドレス |
-| 3 | 体験日（授業では「授業日」） | 希望日時・保護者の同意 |
+| 3 | 体験日（授業では「授業日」） | 希望日時・知ったきっかけ（無料体験だけ）・保護者の同意 |
 
 | 項目 | 種類 | 必須 |
 |---|---|---|
@@ -163,7 +163,18 @@ website2/
 | メールアドレス | メール（形式チェックあり） | ● |
 | 希望日時 | カレンダーで日付 → その日の空いている時間を選択（`TrialDateTimePicker`、クライアント専用で読み込み） | ● |
 | 相談したいこと（授業では「先生に伝えたいこと」） | 複数行テキスト | 任意 |
+| 知ったきっかけ（**無料体験だけ**。授業では出さない） | プルダウン（`trialForm.heardFrom.options`：Instagram（商業検定ラボ／全商英検対策トレーニング／森田智信）・アプリ・検索・YouTube・友だち・先生・チラシ・その他） | 任意 |
 | 保護者の同意 | チェックボックス | ● |
+
+#### 流入元（どこから来たか）の記録（2026-10-23）
+
+- サイトを開いた最初の1回だけ（`VisitSourceRecorder`、`(site)` のレイアウト。`/lesson` では動かない）、ブラウザの localStorage に流入元を覚える（`src/lib/visit-source.ts`）
+  - `skl_first_touch`：そのブラウザで初めて来たとき（上書きしない）
+  - `skl_last_touch`：いちばん最近、外から来たとき（utm 付きのリンクか、ほかのサイトから来るたびに上書き。直接来たときは残す）
+  - 中身は `source`・`medium`・`campaign`（utm の値。無ければ参照元から google／instagram などに分ける。参照元も無ければ direct / none）・`referrer`（参照元のドメインだけ）・`landing`（最初のページのパス。? 以降は入れない）・`at`（日時）
+- **無料体験の申し込みのときにだけ**、きっかけと一緒に `trial_applications` の `heard_from`・`first_touch`・`last_touch` に保存する。サーバー側で、きっかけは選択肢にある値だけ、流入元は決まった項目・100文字までに整える
+- 列を足すSQL（[trial_applications_source.sql](supabase/trial_applications_source.sql)）の実行前は、この3つを外して保存し直すので、申し込みは止まらない
+- 管理画面の申し込み詳細に「知ったきっかけ」「初めて来た経路」「申し込み前に来た経路」を出す。塾への通知メールには「知ったきっかけ」だけを載せる
 
 ### 4.2 受付日時のルール（管理画面「無料体験の受付設定」で変更）
 
@@ -193,7 +204,7 @@ website2/
 2. サーバー側で再チェック。ボット対策の隠し項目 `website` が埋まっていれば保存せず正常終了扱い
 3. 授業（`kind: "lesson"`）の場合は、ページURLの秘密の文字列が正しいかを再確認（4.5）
 4. 選ばれた日時が受付期間・受付時間内かを確認（`isBookable`）。外れていれば「現在受け付けていません」
-5. `trial_applications` に保存。同じ日時が埋まっていれば（一意制約違反）「ちょうど埋まってしまいました」
+5. `trial_applications` に保存（無料体験はきっかけ・流入元も。列が無ければ外して保存し直す）。同じ日時が埋まっていれば（一意制約違反）「ちょうど埋まってしまいました」
 6. 申込者への自動返信と、塾への通知メールを送信（種別ごとに文面を切り替え）。メールが失敗しても申し込みは成立
 7. 日時のエラーのときは選択を外し、カレンダーを作り直して最新の空き状況を取り直す
 
@@ -215,7 +226,7 @@ website2/
 |---|---|---|
 | 管理者の判定 | `admins`、`is_admin()` | [admin.sql](supabase/admin.sql) |
 | 新着情報 | `news` | [news.sql](supabase/news.sql) |
-| 申し込み（無料体験・授業） | `trial_applications`（`kind` 列）、`trial_taken_slots()` | [trial_applications.sql](supabase/trial_applications.sql)、[trial_applications_kind.sql](supabase/trial_applications_kind.sql) |
+| 申し込み（無料体験・授業） | `trial_applications`（`kind` 列、`heard_from`・`first_touch`・`last_touch` 列）、`trial_taken_slots()` | [trial_applications.sql](supabase/trial_applications.sql)、[trial_applications_kind.sql](supabase/trial_applications_kind.sql)、[trial_applications_source.sql](supabase/trial_applications_source.sql) |
 | 受付設定 | `trial_settings`（`date_overrides` 列） | [trial_settings.sql](supabase/trial_settings.sql)、[trial_settings_date_overrides.sql](supabase/trial_settings_date_overrides.sql) |
 | 合格体験記 | `voices`、Storage バケット `voice-photos` | [voices.sql](supabase/voices.sql) |
 | 検定詳細ページ | `subjects` | [subjects.sql](supabase/subjects.sql)、[subjects-add-3.sql](supabase/subjects-add-3.sql)、[subjects-fix-3.sql](supabase/subjects-fix-3.sql) |
@@ -346,7 +357,7 @@ DBの取得に失敗しても、各 `lib` はフォールバック（`content.ts
 | `form_start` | フォームのどれかの項目を最初に操作したとき（1回だけ） | `form_kind`、`first_field` |
 | `form_error` | 送信時の入力エラー、送信の失敗、選んだ日時が埋まっていたとき | `form_kind`、`error_type`（`validation` / `slot_unavailable` / `send_failed`）、`field`（入力エラーの最初の項目名） |
 | `form_step` | 「次へ」でステップ2・3に進んだとき | `form_kind`、`step`（進んだ先のステップ番号 2 / 3）。`step` はGA4のカスタム定義に登録済み（2026-10-19） |
-| `generate_lead` | 申し込みの保存に成功したとき（GA4の推奨イベント。**GA側でキーイベントに登録済み**、カウントはイベントごと） | `form_kind`、`subject`（検定名） |
+| `generate_lead` | 申し込みの保存に成功したとき（GA4の推奨イベント。**GA側でキーイベントに登録済み**、カウントはイベントごと） | `form_kind`、`subject`（検定名）、`heard_from`（無料体験だけ。知ったきっかけの選択肢の文言、未回答は `none`。2026-10-23。**GA4のカスタム定義への登録が必要**） |
 
 - GA側の設定（2026-10-02 済み、`step` は 2026-10-19 に追加）：上の表のパラメータ6つ（`cta_location` / `form_kind` / `first_field` / `error_type` / `field` / `step`）をイベント範囲のカスタムディメンションとして登録。イベントデータの保持期間は14か月
 - パラメータを新しく増やしたら、GA4の「カスタム定義」にも登録しないとレポートに出ない
@@ -485,6 +496,7 @@ DBの取得に失敗しても、各 `lib` はフォールバック（`content.ts
 |---|---|
 | 2026-10-20 | 講師一覧ページの飛燕（インターン生）にメッセージを追加 |
 | 2026-10-20 | 講師一覧ページに飛燕（インターン生）を追加（トップには出ない。写真は正方形に切り抜いて `teacher-hien.jpg`）。保有資格・メッセージが空の講師は見出しごと出さないようにした |
+| 2026-10-23 | 無料体験の申し込みに「知ったきっかけ」（任意のプルダウン、ステップ3）を追加。あわせて、サイトに来た経路（utm・参照元のドメイン・最初のページ）をブラウザに覚えておき、申し込みのときに一緒に保存するようにした（4.1）。管理画面の詳細・塾への通知メール・GA4の `generate_lead`（`heard_from`）・プライバシーポリシー（改定日を表示）も合わせて変更。列を足すSQLは `trial_applications_source.sql`。あわせて、ステップ2で「次へ」を押すと、ステップ3に移った瞬間に送信の入力チェックまで動き「希望日を選んでください」が出てしまう不具合を直した（「次へ」と「申し込む」を別のボタンとして描く） |
 | 2026-10-19 | 講師一覧ページ `/teachers` を新設し、トップの講師紹介の下に「もっと見る」ボタンを追加。トップに出す講師は先頭4名まで（5人目以降は一覧ページだけに出る）。サイトマップに `/teachers` を追加 |
 | 2026-10-19 | 申し込みフォーム（無料体験・授業）を3ステップ（検定 → あなたのこと → 体験日）に分割。ステップごとに入力チェックし、戻っても入力が残る。GA4に、どのステップまで進んだかを数える `form_step` を追加。電話番号の欄を削除（メール・プライバシーポリシーからも外した。DBの `tel` 列と管理画面の表示は過去の申し込みのために残す） |
 | 2026-10-11 | 映像授業（商業検定ラボ-オンデマンド）への導線を追加：ハンバーガーメニューに「映像授業（オンデマンド）」、全商英検・珠算・電卓実務検定のページに「学び方をえらぶ」（個別指導と映像授業を並べる）。リンクには utm を付けて、オンデマンド側で流入元が分かるようにした |

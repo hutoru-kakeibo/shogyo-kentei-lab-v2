@@ -6,6 +6,7 @@ import { trialForm } from "@/lib/content";
 import { isValidLessonToken } from "@/lib/lesson-token";
 import { isBookable, type TrialSchedule } from "@/lib/trial-schedule";
 import { loadTrialSchedule } from "@/lib/trial-schedule-data";
+import { sanitizeVisitSource, type VisitSource } from "@/lib/visit-source";
 
 /** 申し込みの種別。無料体験と、既存生徒の授業 */
 export type ApplicationKind = "trial" | "lesson";
@@ -28,6 +29,11 @@ export type TrialApplicationInput = {
   kind?: ApplicationKind;
   /** 授業の申し込みのときだけ必要な、ページURLの秘密のトークン */
   lessonToken?: string;
+  /** 知ったきっかけ（任意。無料体験だけ） */
+  heardFrom?: string;
+  /** ブラウザが覚えていた流入元（初めて来たとき・申し込み前に外から来たとき）。visit-source.ts */
+  firstTouch?: VisitSource | null;
+  lastTouch?: VisitSource | null;
 };
 
 export type SubmitResult = { ok: true } | { ok: false; message: string };
@@ -39,6 +45,12 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Postgres の一意制約違反エラーコード */
 const UNIQUE_VIOLATION = "23505";
+
+/**
+ * 存在しない列に書こうとしたときのエラーコード（Supabase の API が返すものと、Postgres のもの）。
+ * trial_applications_source.sql の実行前は、きっかけ・流入元の列が無いのでこれになる
+ */
+const MISSING_COLUMN = ["PGRST204", "42703"];
 
 /**
  * 申し込みフォームのカレンダーに使う受付設定。
@@ -118,7 +130,7 @@ export async function submitTrialApplication(
     return { ok: false, message: trialForm.errors.send };
   }
 
-  const { error } = await supabase.from("trial_applications").insert({
+  const row = {
     subject: input.subject,
     target_grade: input.targetGrade,
     name: input.name.trim(),
@@ -132,7 +144,29 @@ export async function submitTrialApplication(
     consent: input.consent,
     // 無料体験は列の既定値（trial）に任せる。kind 列の追加前でも無料体験の申し込みが止まらないようにするため
     ...(kind === "lesson" ? { kind } : {}),
-  });
+  };
+
+  // 知ったきっかけと流入元は無料体験だけ。きっかけは決まった選択肢のときだけ残す
+  const heardFrom =
+    kind === "trial" && (trialForm.heardFrom.options as readonly string[]).includes(input.heardFrom ?? "")
+      ? input.heardFrom
+      : null;
+  const source =
+    kind === "trial"
+      ? {
+          heard_from: heardFrom,
+          first_touch: sanitizeVisitSource(input.firstTouch),
+          last_touch: sanitizeVisitSource(input.lastTouch),
+        }
+      : {};
+
+  let { error } = await supabase.from("trial_applications").insert({ ...row, ...source });
+
+  // 列を足すSQLの実行前は、きっかけ・流入元を外して保存し直す（申し込みそのものを止めないため）
+  if (error && MISSING_COLUMN.includes(error.code) && kind === "trial") {
+    console.error("[trial] きっかけ・流入元の列が無いため、外して保存します:", error.message);
+    ({ error } = await supabase.from("trial_applications").insert(row));
+  }
 
   if (error) {
     if (error.code === UNIQUE_VIOLATION) {
@@ -145,7 +179,7 @@ export async function submitTrialApplication(
   }
 
   // 保存は済んでいるので、メールが送れなくても申し込みは成立させる
-  await sendTrialMails({ ...input, kind });
+  await sendTrialMails({ ...input, kind, heardFrom: heardFrom ?? undefined });
 
   return { ok: true };
 }

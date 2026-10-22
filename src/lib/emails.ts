@@ -78,10 +78,12 @@ ${siteMeta.url}
 /** 塾側へ送る通知 */
 async function sendOwnerMail(input: TrialApplicationInput) {
   const lesson = isLesson(input);
+  // 知ったきっかけは塾側だけに載せる（申込者への控えには不要なため）。流入元は管理画面の詳細で見る
+  const heardFrom = lesson ? "" : `\n知ったきっかけ : ${input.heardFrom || "（未回答）"}`;
   const text = `${lesson ? "授業の申し込み（既存生徒）" : "無料体験の申し込み"}が入りました。
 
 ------------------------------------
-${summary(input)}
+${summary(input)}${heardFrom}
 ------------------------------------
 
 申し込み一覧は、管理画面の「申し込み（無料体験・授業）」で確認できます。

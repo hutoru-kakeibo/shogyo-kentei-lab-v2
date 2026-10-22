@@ -508,6 +508,25 @@ export const trialForm = {
     weekdayNames: ["日", "月", "火", "水", "木", "金", "土"],
     selectedPrefix: "選択中：",
   },
+  /**
+   * 「知ったきっかけ」（任意。無料体験だけで聞く）。どの経路から申し込みがあったかを見るため。
+   * 選択肢の文言を変えると、それまでの申し込みと数え方がずれるので、変えるときは管理画面の表示も確かめる
+   */
+  heardFrom: {
+    label: "商業検定ラボを知ったきっかけ",
+    options: [
+      "Instagram（商業検定ラボ）",
+      "Instagram（全商英検対策トレーニング）",
+      "Instagram（森田智信）",
+      "全商英検対策トレーニング（アプリ）",
+      "Google などの検索",
+      "YouTube",
+      "友だち・先輩・家族から",
+      "学校の先生から",
+      "チラシ",
+      "その他",
+    ],
+  },
   /** 保護者同意のチェック文言 */
   consent: "未成年のため、保護者の同意を得たうえで申し込みます（20歳以上の方もチェックしてください）",
   /** 同意欄の下に出す、個人情報の取り扱いの案内 */
@@ -911,10 +930,23 @@ export const adminTrials = {
     tel: "電話番号",
     preferred: "希望日時",
     message: "相談・伝えたいこと",
+    heardFrom: "知ったきっかけ",
+    firstTouch: "初めて来た経路",
+    lastTouch: "申し込み前に来た経路",
     createdAt: "申し込み日時",
   },
   noMessage: "（記入なし）",
   noTel: "（未記入）",
+  noHeardFrom: "（未回答）",
+  /** 流入元の仕組みを入れる前の申し込みや、ブラウザが記録を残せなかったとき */
+  noSource: "（記録なし）",
+  /** 流入元の medium の値を、画面での呼び方に直す */
+  sourceMediumLabels: {
+    none: "直接（ブックマーク・URLの入力・アプリ内のリンクなど）",
+    organic: "検索",
+    social: "SNS",
+    referral: "ほかのサイトのリンク",
+  } as Record<string, string>,
   updateSubmitLabel: "対応状況を更新する",
   updatingLabel: "更新しています…",
   updatedLabel: "更新しました",
