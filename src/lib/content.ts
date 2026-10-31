@@ -119,6 +119,7 @@ export const globalNav = [
   { label: "コラム", href: "/columns" },
   { label: "新着情報", href: "/#news" },
   { label: "プライバシーポリシー", href: "/privacy" },
+  { label: "特定商取引法に基づく表記", href: "/tokushoho" },
   { label: "ログイン", href: "/login" },
 ];
 

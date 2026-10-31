@@ -37,6 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteMeta.url}/teachers`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${siteMeta.url}/news`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${siteMeta.url}/privacy`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${siteMeta.url}/tokushoho`, changeFrequency: "yearly", priority: 0.2 },
     ...subjects
       .filter((subject) => isSubjectPublished(subject.slug))
       .map((subject) => ({
