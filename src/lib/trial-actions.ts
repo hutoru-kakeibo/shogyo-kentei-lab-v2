@@ -7,6 +7,7 @@ import { isValidLessonToken } from "@/lib/lesson-token";
 import { isBookable, type TrialSchedule } from "@/lib/trial-schedule";
 import { loadTrialSchedule } from "@/lib/trial-schedule-data";
 import { sanitizeVisitSource, type VisitSource } from "@/lib/visit-source";
+import { isValidTel, normalizeTel } from "@/lib/tel";
 
 /** 申し込みの種別。無料体験と、既存生徒の授業 */
 export type ApplicationKind = "trial" | "lesson";
@@ -19,6 +20,8 @@ export type TrialApplicationInput = {
   gradeYear: string;
   school: string;
   email: string;
+  /** 電話番号（無料体験だけ必須。授業の申し込みでは空） */
+  tel: string;
   preferredDate: string;
   preferredTime: string;
   message: string;
@@ -111,6 +114,7 @@ export async function submitTrialApplication(
     input.gradeYear &&
     input.school.trim() &&
     emailPattern.test(input.email.trim()) &&
+    (kind === "lesson" || isValidTel(input.tel ?? "")) &&
     input.preferredDate &&
     input.preferredTime &&
     input.consent;
@@ -138,6 +142,8 @@ export async function submitTrialApplication(
     grade_year: input.gradeYear,
     school: input.school.trim(),
     email: input.email.trim(),
+    // 数字だけにそろえて保存する（管理画面の「電話する」でそのまま使える）
+    tel: kind === "trial" ? normalizeTel(input.tel) : null,
     preferred_date: input.preferredDate,
     preferred_time: input.preferredTime,
     message: input.message.trim() || null,

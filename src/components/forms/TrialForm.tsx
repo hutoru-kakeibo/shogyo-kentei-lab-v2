@@ -8,6 +8,7 @@ import { courseSearch, lessonForm, trialForm } from "@/lib/content";
 import { submitTrialApplication, type ApplicationKind } from "@/lib/trial-actions";
 import { trackEvent } from "@/lib/analytics";
 import { loadVisitSources } from "@/lib/visit-source";
+import { isValidTel } from "@/lib/tel";
 
 // 「今日」を基準にカレンダーを組み立てるため、サーバー側では描画しない（表示ズレ防止）
 const TrialDateTimePicker = dynamic(
@@ -26,6 +27,8 @@ type Values = {
   gradeYear: string;
   school: string;
   email: string;
+  /** 電話番号（無料体験だけ必須。授業の申し込みでは出さない） */
+  tel: string;
   /** 希望日（YYYY-MM-DD） */
   preferredDate: string;
   /** 希望時間（HH:mm） */
@@ -46,6 +49,7 @@ const initialValues: Values = {
   gradeYear: "",
   school: "",
   email: "",
+  tel: "",
   preferredDate: "",
   preferredTime: "",
   message: "",
@@ -79,7 +83,7 @@ const copyByKind = {
 /** 各ステップで入力チェックする項目（並びはエラー時にスクロールする順） */
 const stepFields: (keyof Values)[][] = [
   ["subject", "targetGrade"],
-  ["name", "gradeYear", "school", "email"],
+  ["name", "gradeYear", "school", "email", "tel"],
   ["preferredDate", "preferredTime", "consent"],
 ];
 const lastStep = stepFields.length - 1;
@@ -234,6 +238,13 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug }: Props) {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
       next.email = messages.email;
     }
+    if (kind === "trial") {
+      if (!values.tel.trim()) {
+        next.tel = messages.required;
+      } else if (!isValidTel(values.tel)) {
+        next.tel = messages.tel;
+      }
+    }
     if (!values.preferredDate) {
       next.preferredDate = messages.date;
     } else if (!values.preferredTime) {
@@ -305,6 +316,7 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug }: Props) {
     const result = await submitTrialApplication({
       ...values,
       heardFrom: kind === "trial" ? values.heardFrom : "",
+      tel: kind === "trial" ? values.tel : "",
       kind,
       lessonToken,
       firstTouch: sources.first,
@@ -515,6 +527,26 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug }: Props) {
             />
             <ErrorText id="email-error" message={errors.email} />
           </div>
+
+          {/* 電話番号。無料体験だけ（授業を申し込む在籍生の番号は塾が把握している） */}
+          {kind === "trial" ? (
+            <div>
+              <FieldLabel htmlFor="tel" label="電話番号" required />
+              <input
+                id="tel"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="090-1234-5678"
+                value={values.tel}
+                onChange={(event) => update("tel", event.target.value)}
+                aria-invalid={Boolean(errors.tel)}
+                aria-describedby={errors.tel ? "tel-error" : undefined}
+                className={inputClass}
+              />
+              <ErrorText id="tel-error" message={errors.tel} />
+            </div>
+          ) : null}
         </div>
 
         {/* ステップ3：希望日時・知ったきっかけ・保護者の同意 */}
