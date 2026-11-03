@@ -45,11 +45,15 @@ export default function TokushohoPage() {
           {tokushoho.rows.map(([label, value]) => (
             <div key={label} className="py-4">
               <dt className="font-round text-[14px] font-bold text-ink">{label}</dt>
-              <dd className="mt-1 text-[13px] leading-relaxed text-ink-muted">{value}</dd>
+              <dd className="mt-1 whitespace-pre-line text-[13px] leading-relaxed text-ink-muted">{value}</dd>
             </div>
           ))}
         </dl>
-        <p className="mt-6 text-right text-[12px] text-ink-muted">制定日：{formatArticleDate(tokushoho.enactedAt)}</p>
+        <p className="mt-6 text-right text-[12px] text-ink-muted">
+          制定日：{formatArticleDate(tokushoho.enactedAt)}
+          <br />
+          改定日：{formatArticleDate(tokushoho.revisedAt)}
+        </p>
       </section>
     </main>
   );
