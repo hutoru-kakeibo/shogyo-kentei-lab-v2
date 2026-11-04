@@ -29,7 +29,7 @@ function PromiseWindow({ kind, no }: { kind: (typeof lp.promises)[number]["windo
     subjects: "対策できる検定",
     chat: "実際のやり取り",
     schedule: "今週の予定",
-    roadmap: "3年間のロードマップ",
+    results: "合格実績",
   };
   let body: React.ReactNode;
   if (kind === "weak") {
@@ -111,24 +111,24 @@ function PromiseWindow({ kind, no }: { kind: (typeof lp.promises)[number]["windo
       </>
     );
   } else {
+    // 合格実績（2026-11-05 運営者の指示。数字と大学名は運営者が示した実績。lp-content.ts の約束05）
     body = (
       <>
-        <div className={s.road}>
-          {[
-            ["1年", "検定勉強", "40%"],
-            ["2年", "課外活動", "65%"],
-            ["3年", "推薦入試対策", "90%"],
-          ].map(([y, t, w]) => (
-            <div key={y} className={s.roadRow}>
-              <span className={s.roadYear}>{y}</span>
-              <span className={s.roadBar} style={{ "--w": w } as React.CSSProperties}>
-                {t}
-              </span>
-            </div>
+        <p className={s.rate}>
+          <span className={s.rateLabel}>検定合格率</span>
+          <span className={s.rateNum}>
+            100<small>%</small>
+          </span>
+        </p>
+        <p className={s.uniLabel}>大学の合格実績</p>
+        <div className={s.unis}>
+          {["関西大学", "文教大学"].map((u) => (
+            <span key={u} className={s.uni}>
+              {u}
+              <i className={s.uniStamp}>合格</i>
+            </span>
           ))}
         </div>
-        <p className={s.roadGoal}>→ 推薦・進学・就職へ！</p>
-        <span className={s.note}>※イメージです</span>
       </>
     );
   }

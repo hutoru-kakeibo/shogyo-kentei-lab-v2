@@ -1045,42 +1045,73 @@
   font-size: 9px;
 }
 
-.road {
+/* 合格実績（約束05） */
+.rate {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.roadRow {
-  display: flex;
-  align-items: center;
+  align-items: flex-end;
+  justify-content: center;
   gap: 10px;
 }
-.roadYear {
-  /* 帯が長くても年の欄が縮まないようにして、帯の左端をそろえる */
-  flex: 0 0 52px;
-  font-family: var(--f-mono);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--mute);
-}
-.roadBar {
-  padding: 8px 12px;
-  font-size: 14px;
-  font-weight: 900;
-  color: #fff;
-  background: var(--ink);
-  border-radius: 6px;
-  width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  transition: width 1s cubic-bezier(0.2, 0.9, 0.3, 1);
-}
-.roadGoal {
-  margin-top: 6px;
-  text-align: center;
+.rateLabel {
+  padding-bottom: 12px;
   font-size: 15px;
   font-weight: 900;
+}
+.rateNum {
+  font-family: var(--f-en);
+  font-size: 64px;
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: -0.03em;
   color: var(--orange-2);
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-right: 0.1em;
+}
+.rateNum small {
+  font-size: 30px;
+}
+.uniLabel {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--mute);
+}
+.unis {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.uni {
+  position: relative;
+  padding: 8px 22px 8px 12px;
+  font-size: 15px;
+  font-weight: 900;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+}
+.uniStamp {
+  /* 右上に押した「合格」のはんこ */
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  color: #e8322a;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #e8322a;
+  border-radius: 50%;
 }
 
 .promiseBody {
@@ -2486,21 +2517,27 @@
 [data-in] .bubble:nth-child(3) {
   transition-delay: 1.5s;
 }
-[data-in] .roadBar {
-  width: var(--w);
+.rateNum {
+  display: inline-block;
+  transform: scale(0.6);
+  opacity: 0;
+  transition:
+    transform 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) 0.2s,
+    opacity 0.3s ease 0.2s;
 }
-[data-in] .roadRow:nth-child(2) .roadBar {
-  transition-delay: 0.35s;
+[data-in] .rateNum {
+  transform: scale(1);
+  opacity: 1;
 }
-[data-in] .roadRow:nth-child(3) .roadBar {
-  transition-delay: 0.7s;
-}
-.roadGoal {
+.uniStamp {
   transform: scale(0);
-  transition: transform 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) 1.3s;
+  transition: transform 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) 0.9s;
 }
-[data-in] .roadGoal {
-  transform: scale(1) rotate(-3deg);
+.uni:nth-child(2) .uniStamp {
+  transition-delay: 1.2s;
+}
+[data-in] .uniStamp {
+  transform: scale(1) rotate(-12deg);
 }
 
 /* ファーストビュー：開いたときに見出しが1行ずつせり上がる */
