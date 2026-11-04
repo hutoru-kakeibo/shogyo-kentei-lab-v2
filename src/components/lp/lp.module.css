@@ -2217,6 +2217,15 @@
   font-weight: 900;
   color: var(--orange-2);
 }
+/* お知らせの文中のリンク（長いURLでも横にはみ出さないよう折り返す） */
+.inlineLink {
+  display: block;
+  margin-top: 2px;
+  color: var(--orange-2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-all;
+}
 .newsRow {
   padding: 14px 4px;
   border-bottom: 1.5px dashed rgba(28, 25, 23, 0.2);

@@ -31,6 +31,23 @@ export function ColumnCards({ items }: { items: ArticleSummary[] }) {
   );
 }
 
+/** 文中の URL（https://…）を、押せるリンクにする */
+function Linkify({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
+        /^https?:\/\//.test(part) ? (
+          <a key={i} href={part} target="_blank" rel="noopener noreferrer" className={s.inlineLink}>
+            {part}
+          </a>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
+
 /** お知らせの並び（トップの欄と一覧ページで共通） */
 export function NewsRows({ items }: { items: NewsItem[] }) {
   return (
@@ -41,7 +58,9 @@ export function NewsRows({ items }: { items: NewsItem[] }) {
             <time>{item.date}</time>
             <NewsCategoryTag category={item.category} />
           </div>
-          <p className={s.postTitle}>{item.title}</p>
+          <p className={s.postTitle}>
+            <Linkify text={item.title} />
+          </p>
         </li>
       ))}
     </ul>
