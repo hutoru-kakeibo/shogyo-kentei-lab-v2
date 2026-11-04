@@ -12,7 +12,8 @@ import s from "@/components/lp/lp.module.css";
 /** 合格者の声を Supabase から読むため、5分ごとに作り直す（今のトップページと同じ） */
 export const revalidate = 300;
 
-const homeTeachers = teachers.items.slice(0, 4);
+/** 講師カルーセルに出す講師（塾長・英語顧問・講師・インターン生2人） */
+const homeTeachers = teachers.items.slice(0, 5);
 const subjectOptions = courseSearch.categories.flatMap((c) =>
   c.items.filter((i) => i.ready).map((i) => ({ name: i.name, slug: i.href.replace("/subjects/", "") })),
 );
