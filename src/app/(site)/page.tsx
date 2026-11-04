@@ -488,21 +488,6 @@ export default async function Home() {
             </ol>
           </section>
 
-          {/* よくある質問（今のサイトから引き継ぎ。検索結果に出す構造化データも FaqJsonLd で出している） */}
-          <section id="faq" className={`${s.sec} ${s.gridW}`}>
-            <p className={s.eyebrow} data-rv>
-              {faq.englishTitle}
-            </p>
-            <h2 className={s.secTitle} data-rv>
-              {faq.title}
-            </h2>
-            <LpFaq items={faq.items} />
-          </section>
-
-          {/* コラム・新着情報 */}
-          <LpColumnsSection />
-          <LpNewsSection />
-
           {/* 申し込み */}
           <section id="apply" className={`${s.close} ${s.gridW}`}>
             <div className={s.closeCard}>
@@ -564,6 +549,22 @@ export default async function Home() {
               </form>
             </div>
           </section>
+
+          {/* よくある質問（今のサイトから引き継ぎ。検索結果に出す構造化データも FaqJsonLd で出している） */}
+          <section id="faq" className={`${s.sec} ${s.gridW}`}>
+            <p className={s.eyebrow} data-rv>
+              {faq.englishTitle}
+            </p>
+            <h2 className={s.secTitle} data-rv>
+              {faq.title}
+            </h2>
+            <LpFaq items={faq.items} />
+          </section>
+
+          {/* コラム・新着情報 */}
+          <LpColumnsSection />
+          <LpNewsSection />
+
         </main>
 
       <StickyCta label={lp.stickyCta} href={lp.cta.href} />

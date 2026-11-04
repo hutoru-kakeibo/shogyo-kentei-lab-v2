@@ -201,9 +201,10 @@ export function StickyCta({ label, href }: { label: string; href: string }) {
 
   useEffect(() => {
     const onScroll = () => {
-      const close = document.getElementById("apply");
-      const closeTop = close ? close.getBoundingClientRect().top : Infinity;
-      setShow(window.scrollY > 600 && closeTop > window.innerHeight * 0.6);
+      // 申し込み欄が画面に出ているあいだだけ隠す（通り過ぎたら、よくある質問などの上でまた出す）
+      const rect = document.getElementById("apply")?.getBoundingClientRect();
+      const applyOnScreen = rect ? rect.top < window.innerHeight * 0.6 && rect.bottom > 80 : false;
+      setShow(window.scrollY > 600 && !applyOnScreen);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
