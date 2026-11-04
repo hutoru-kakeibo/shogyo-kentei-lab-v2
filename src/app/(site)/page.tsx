@@ -43,7 +43,7 @@ function PromiseWindow({ kind, no }: { kind: (typeof lp.promises)[number]["windo
           ))}
         </div>
         <div className={s.windowPhoto}>
-          <Image src="/images/teacher-moka.jpg" alt="" fill sizes="92px" />
+          <Image src="/images/teacher-nagamine.jpg" alt="" fill sizes="92px" />
         </div>
       </>
     );
@@ -226,8 +226,8 @@ export default async function Home() {
             </h2>
             <Typewriter lines={lp.about.typeLines} />
             <SnapCarousel label="講師紹介" autoplayMs={2000}>
-              {homeTeachers.map((t, i) => {
-                const card = lp.about.teacherCards[i];
+              {homeTeachers.map((t) => {
+                const card = lp.about.teacherCards[t.id] ?? { tag: "#講師", en: "Teacher", color: "#fb4a19" };
                 const name = t.name.replace(/（.*）/, "");
                 return (
                   // タップすると講師一覧のその講師の場所へ移る
@@ -500,8 +500,8 @@ export default async function Home() {
               <div className={s.closeVisual} aria-hidden>
                 <div className={s.orbit} />
                 {[
-                  { src: homeTeachers[1].photo, l: 100, t: 20, size: 104 },
-                  { src: homeTeachers[0].photo, l: 22, t: 92, size: 76 },
+                  { src: homeTeachers[0].photo, l: 100, t: 20, size: 104 },
+                  { src: homeTeachers[1].photo, l: 22, t: 92, size: 76 },
                   { src: homeTeachers[2].photo, l: 196, t: 78, size: 76 },
                   { src: homeTeachers[3].photo, l: 128, t: 128, size: 62 },
                 ].map((f, i) =>

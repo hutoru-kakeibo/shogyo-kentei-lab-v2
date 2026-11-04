@@ -297,18 +297,6 @@ export const teachers = {
   },
   items: [
     {
-      id: "teacher-1",
-      name: "後藤もか（講師）",
-      tone: "sakura",
-      imageLabel: "後藤もか（講師）の写真",
-      /** public/images 配下の写真パス。null のときはプレースホルダーを表示する */
-      photo: "/images/teacher-moka.jpg" as string | null,
-      school: "宮崎学園高校→立命館大学",
-      qualifications: ["全商9冠", "実用英検2級", "日商簿記2級", "秘書検定準1級"],
-      intro:
-        "どこがわからないかわからない！と感じることもあると思います。一緒にわからないところを探しながら、楽しく理解できる授業を目指します！",
-    },
-    {
       id: "teacher-2",
       name: "森田智信（塾長）",
       tone: "lemon",

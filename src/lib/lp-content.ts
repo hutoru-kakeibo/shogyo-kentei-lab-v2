@@ -57,13 +57,14 @@ export const lp = {
       [{ t: "全商検定", hl: true }, { t: "に特化した" }],
       [{ t: "日本初の" }, { t: "商業高校生専門", hl: true }, { t: "の塾です" }],
     ],
-    /** 講師カードの上に付けるタグと英字の肩書き（content.ts の講師の並び順に対応） */
-    teacherCards: [
-      { tag: "#講師", en: "Teacher", color: "#fb4a19" },
-      { tag: "#塾長", en: "Founder", color: "#7b3fe4" },
-      { tag: "#英語顧問", en: "English Advisor", color: "#ec7a6c" },
-      { tag: "#講師", en: "Teacher", color: "#22a24a" },
-    ],
+    /** 講師カードの上に付けるタグと英字の肩書き・色（content.ts の講師の id ごと） */
+    teacherCards: {
+      "teacher-2": { tag: "#塾長", en: "Founder", color: "#7b3fe4" },
+      "teacher-3": { tag: "#英語顧問", en: "English Advisor", color: "#ec7a6c" },
+      "teacher-4": { tag: "#講師", en: "Teacher", color: "#22a24a" },
+      "teacher-5": { tag: "#インターン生", en: "Intern", color: "#fb4a19" },
+      "teacher-6": { tag: "#インターン生", en: "Intern", color: "#0ea5e9" },
+    } as Record<string, { tag: string; en: string; color: string }>,
   },
 
   band: "Who are we?",
