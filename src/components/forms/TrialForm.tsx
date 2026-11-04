@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, CircleAlert, CircleCheck, Send } from "lucide-react";
-import { courseSearch, lessonForm, trialForm } from "@/lib/content";
+import { courseSearch, lessonForm, targetGradeOptions, trialForm } from "@/lib/content";
 import { submitTrialApplication, type ApplicationKind } from "@/lib/trial-actions";
 import { trackEvent } from "@/lib/analytics";
 import { loadVisitSources } from "@/lib/visit-source";
@@ -208,10 +208,16 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug, doneHref }
   const copy = copyByKind[kind];
   // 検定ページから来たときは、その検定を「受けたい検定」に選んだ状態で始める。
   // 本人の操作ではないので、入力開始（form_start）には数えない
-  const [values, setValues] = useState<Values>(() => ({
-    ...initialValues,
-    subject: (subjectSlug && subjectNameBySlug[subjectSlug]) || "",
-  }));
+  const [values, setValues] = useState<Values>(() => {
+    const subject = (subjectSlug && subjectNameBySlug[subjectSlug]) || "";
+    return {
+      ...initialValues,
+      subject,
+      targetGrade: subject && targetGradeOptions(subject) === null ? trialForm.noGradeLabel : "",
+    };
+  });
+  // いま選んでいる検定で選べる級。null のときは級を聞かない
+  const gradeOptions = values.subject ? targetGradeOptions(values.subject) : trialForm.targetGrades;
   const [errors, setErrors] = useState<Partial<Record<keyof Values, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [sendError, setSendError] = useState("");
@@ -231,7 +237,17 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug, doneHref }
       startedRef.current = true;
       trackEvent("form_start", { form_kind: kind, first_field: key });
     }
-    setValues((current) => ({ ...current, [key]: value }));
+    setValues((current) => {
+      const next = { ...current, [key]: value };
+      // 検定を選び直したら、級をその検定に合わせる（級を聞かない検定は「級なし」、
+      // 選べない級を選んでいたら選び直してもらう）
+      if (key === "subject") {
+        const options = targetGradeOptions(String(value));
+        if (options === null) next.targetGrade = trialForm.noGradeLabel;
+        else if (!options.includes(current.targetGrade)) next.targetGrade = "";
+      }
+      return next;
+    });
     setErrors((current) => ({ ...current, [key]: undefined }));
   };
 
@@ -241,6 +257,7 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug, doneHref }
 
     if (!values.subject) next.subject = messages.select;
     if (!values.targetGrade) next.targetGrade = messages.select;
+    else if (gradeOptions && !gradeOptions.includes(values.targetGrade)) next.targetGrade = messages.select;
     if (!values.name.trim()) next.name = messages.required;
     if (!values.gradeYear) next.gradeYear = messages.select;
     if (!values.school.trim()) next.school = messages.required;
@@ -423,8 +440,8 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug, doneHref }
             <ErrorText id="subject-error" message={errors.subject} />
           </div>
 
-          {/* 受験予定の級 */}
-          <div>
+          {/* 受験予定の級。級を聞かない検定（財務諸表分析・商業経済・推薦・就職）では出さない */}
+          <div hidden={gradeOptions === null}>
             <FieldLabel htmlFor="targetGrade" label="受験予定の級" required />
             <select
               id="targetGrade"
@@ -435,7 +452,7 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug, doneHref }
               className={inputClass}
             >
               <option value="">選択してください</option>
-              {trialForm.targetGrades.map((option) => (
+              {(gradeOptions ?? []).map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>

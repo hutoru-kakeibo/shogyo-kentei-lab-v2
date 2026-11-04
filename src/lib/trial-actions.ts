@@ -2,7 +2,7 @@
 
 import { getSupabaseClient } from "@/lib/supabase";
 import { sendTrialMails } from "@/lib/emails";
-import { trialForm } from "@/lib/content";
+import { isValidTargetGrade, trialForm } from "@/lib/content";
 import { isValidLessonToken } from "@/lib/lesson-token";
 import { isBookable, type TrialSchedule } from "@/lib/trial-schedule";
 import { loadTrialSchedule } from "@/lib/trial-schedule-data";
@@ -109,7 +109,8 @@ export async function submitTrialApplication(
 
   const filled =
     input.subject &&
-    input.targetGrade &&
+    // 検定ごとに選べる級が違う（級を聞かない検定は「級なし」）
+    isValidTargetGrade(input.subject, input.targetGrade) &&
     input.name.trim() &&
     input.gradeYear &&
     input.school.trim() &&

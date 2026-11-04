@@ -477,6 +477,20 @@ export const trialSchedule = {
 } as const;
 
 /** 無料体験の申し込みフォーム */
+/**
+ * 「受けたい検定」に合わせた「受験予定の級」の選択肢。null は級を聞かない検定
+ */
+export function targetGradeOptions(subject: string): readonly string[] | null {
+  if (subject in trialForm.targetGradesBySubject) return trialForm.targetGradesBySubject[subject];
+  return trialForm.targetGrades;
+}
+
+/** 選んだ級が、その検定の選択肢に合っているか（送信時にサーバー側でも確かめる） */
+export function isValidTargetGrade(subject: string, grade: string) {
+  const options = targetGradeOptions(subject);
+  return options === null ? grade === trialForm.noGradeLabel : options.includes(grade);
+}
+
 export const trialForm = {
   title: "無料体験のお申し込み",
   englishTitle: "TRIAL",
@@ -496,8 +510,23 @@ export const trialForm = {
   ],
   /** 学年の選択肢 */
   gradeYears: ["高校1年", "高校2年", "高校3年", "その他"],
-  /** 受験予定の級の選択肢 */
+  /** 受験予定の級の選択肢（下の targetGradesBySubject に無い検定はこれを使う） */
   targetGrades: ["3級", "2級", "1級", "まだ決めていない"],
+  /**
+   * 検定ごとに級の選択肢を変えるもの（2026-11-05 運営者の指示）。
+   * null の検定は級を聞かない（欄ごと出さず、noGradeLabel を保存する）。
+   * キーは「受けたい検定」の選択肢の名前（courseSearch の name）と同じにする
+   */
+  targetGradesBySubject: {
+    財務諸表分析: null,
+    商業経済検定: null,
+    "推薦・総合型選抜対策": null,
+    就職試験対策: null,
+    日商簿記検定: ["3級", "2級", "まだ決めていない"],
+    "実用英検（準2級・準2級プラス・2級）": ["準2級", "準2級プラス", "2級"],
+  } as Record<string, readonly string[] | null>,
+  /** 級を聞かない検定のときに保存する値（管理画面・通知メールにはこの文字が出る） */
+  noGradeLabel: "級なし",
   /** 検定の選択肢に加える項目 */
   undecidedSubject: "まだ決めていない・相談したい",
   /** 希望日時の選択まわり */
