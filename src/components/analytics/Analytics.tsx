@@ -34,8 +34,24 @@ export function Analytics() {
       trackEvent("cta_click", { cta_location: location });
     };
 
+    // トップいちばん下の「検定を選んで申し込む」フォーム（/trial へ移るだけのフォーム）も同じく数える
+    const handleSubmit = (event: SubmitEvent) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      const url = new URL(form.action, window.location.href);
+      if (url.origin !== window.location.origin || url.pathname !== "/trial") return;
+      const location =
+        form.closest("[data-cta]")?.getAttribute("data-cta") ??
+        ctaLocationFromPath(window.location.pathname);
+      trackEvent("cta_click", { cta_location: location });
+    };
+
     document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
+    document.addEventListener("submit", handleSubmit);
+    return () => {
+      document.removeEventListener("click", handleClick);
+      document.removeEventListener("submit", handleSubmit);
+    };
   }, [enabled]);
 
   if (!enabled) return null;

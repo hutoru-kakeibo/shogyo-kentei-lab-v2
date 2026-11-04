@@ -100,8 +100,95 @@ export function CtaBig({
   );
 }
 
+/** 下の階層のページの見出し（戻るリンク・英字・明朝の見出し・説明） */
+export function PageHead({
+  eyebrow,
+  title,
+  lead,
+  back = { label: "トップページに戻る", href: "/" },
+  meta,
+}: {
+  eyebrow: string;
+  title: string;
+  lead?: string;
+  back?: { label: string; href: string };
+  meta?: React.ReactNode;
+}) {
+  return (
+    <section className={`${s.pageHead} ${s.gridW}`}>
+      <div className={s.pageBackRow}>
+        <Link href={back.href} className={s.pageBack}>
+          ‹ {back.label}
+        </Link>
+      </div>
+      <p className={s.eyebrow}>{eyebrow}</p>
+      <h1 className={s.pageTitle}>{title}</h1>
+      {meta && <div className={s.pageMeta}>{meta}</div>}
+      {lead && <p className={s.pageLead}>{lead}</p>}
+    </section>
+  );
+}
+
+/**
+ * 規約ページ（特定商取引法に基づく表記・プライバシーポリシー）の見出し。
+ * 薄いグレーの帯に、英字の小見出し・太い見出し・短い黒い線
+ */
+export function LegalHead({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return (
+    <section className={s.legalHead}>
+      <p className={s.legalSub}>{eyebrow}</p>
+      <h1 className={s.legalTitle}>{title}</h1>
+      <span className={s.legalBar} aria-hidden />
+    </section>
+  );
+}
+
+/** 規約ページの1項目（オレンジの印つきの見出し＋本文） */
+export function LegalRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className={s.legalRow}>
+      <h2 className={s.legalLabel}>
+        <span className={s.legalMarker} aria-hidden />
+        {label}
+      </h2>
+      <div className={s.legalText}>{children}</div>
+    </div>
+  );
+}
+
+/** 下の階層のページの最後に置く、無料体験への案内カード。cta は計測用の置き場所の名前 */
+export function CtaCard({
+  title,
+  body,
+  label,
+  href = "/trial",
+  cta,
+}: {
+  title: string;
+  body?: string;
+  label: string;
+  href?: string;
+  cta: string;
+}) {
+  return (
+    <section className={`${s.ctaCardWrap} ${s.gridW}`}>
+      <div className={s.ctaCard} data-cta={cta}>
+        <p className={s.ctaCardTitle}>{title}</p>
+        {body && <p className={s.ctaCardBody}>{body}</p>}
+        <CtaBig href={href} main={label} />
+      </div>
+    </section>
+  );
+}
+
 /** ページいちばん下のフッター */
-export function LpFooter({ links, copyright }: { links: { label: string; href: string }[]; copyright: string }) {
+export function LpFooter({
+  links,
+  copyright,
+}: {
+  links: readonly { label: string; href: string }[];
+  copyright: string;
+}) {
   return (
     <footer className={s.footer}>
       <Logo />

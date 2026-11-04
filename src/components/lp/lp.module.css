@@ -19,6 +19,27 @@
   --f-en: "Inter", "Noto Sans JP", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
 
+  /*
+    今のサイトの部品（フォーム・コラム本文・検定ページの中身など）は Tailwind の色名（sakura など）で書かれている。
+    その色を、このデザインのオレンジ系・黒に置き換える（このページの中だけ）
+  */
+  --color-sakura-50: #fff7ed;
+  --color-sakura-100: #ffedd5;
+  --color-sakura-200: #fed7aa;
+  --color-sakura-300: #fdba74;
+  --color-sakura-400: #fb8619;
+  --color-sakura-500: #fb6a19;
+  --color-sakura-600: #fb4a19;
+  --color-lemon-50: #f7fde4;
+  --color-lemon-200: #d9f58a;
+  --color-mint-100: #f7fde4;
+  --color-mint-500: #65a30d;
+  --color-sky-600: #fb4a19;
+  --color-canvas: #ffffff;
+  --color-ink: #1c1917;
+  --color-ink-muted: #6b6661;
+  --font-round: var(--f-sans);
+
   min-height: 100dvh;
   color: var(--ink);
   font-family: var(--f-sans);
@@ -1239,6 +1260,10 @@
   background: #fff;
   border-radius: 8px;
 }
+/* 押せることがわかるよう、押したときに少し沈む */
+.svcChip:active {
+  translate: 0 2px;
+}
 .svcMore {
   padding: 9px 14px;
   font-family: var(--f-en);
@@ -1693,23 +1718,8 @@
   フォーム本体（TrialForm）は今のサイトと同じ部品を使い、色と文字だけこのページに合わせる。
   今のサイトのピンク系の色を、ここだけオレンジ系に置き換えている
 */
+/* フォーム本体は今のサイトと同じ部品（TrialForm）。色と文字は .root で置き換えている */
 .formTheme {
-  --color-sakura-50: #fff7ed;
-  --color-sakura-100: #ffedd5;
-  --color-sakura-200: #fed7aa;
-  --color-sakura-300: #fdba74;
-  --color-sakura-400: #fb8619;
-  --color-sakura-500: #fb6a19;
-  --color-sakura-600: #fb4a19;
-  --color-lemon-50: #f7fde4;
-  --color-lemon-200: #d9f58a;
-  --color-mint-100: #f7fde4;
-  --color-mint-500: #65a30d;
-  --color-sky-600: #fb4a19;
-  --color-canvas: #ffffff;
-  --color-ink: #1c1917;
-  --color-ink-muted: #6b6661;
-  --font-round: var(--f-sans);
   font-family: var(--f-sans);
 }
 /* 入力欄の白いカードを、トップの「黒い線のカード」にそろえる */
@@ -1846,6 +1856,494 @@
 }
 .finalCard .ctaBig {
   margin-top: 20px;
+}
+
+/* =========================================================
+   全ページ共通（ヘッダー・メニュー・下の階層のページの見出しなど）
+   ========================================================= */
+
+/* ヘッダー：黒い細い帯。スクロールしても上に残る */
+.siteHeader {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+.siteHeaderBar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 54px;
+  padding-left: 14px;
+  color: #fff;
+  background: var(--ink);
+}
+.siteHeaderLogo .logo {
+  font-size: 22px;
+}
+.menuButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 58px;
+  height: 54px;
+  color: #fff;
+  background: var(--grad);
+}
+.menuIcon {
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 14px;
+}
+.menuIcon i {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2.5px;
+  background: currentColor;
+  border-radius: 2px;
+  transition:
+    transform 0.3s,
+    opacity 0.2s,
+    top 0.3s;
+}
+.menuIcon i:nth-child(1) {
+  top: 0;
+}
+.menuIcon i:nth-child(2) {
+  top: 6px;
+}
+.menuIcon i:nth-child(3) {
+  top: 12px;
+}
+.menuIcon[data-open] i:nth-child(1) {
+  top: 6px;
+  transform: rotate(45deg);
+}
+.menuIcon[data-open] i:nth-child(2) {
+  opacity: 0;
+}
+.menuIcon[data-open] i:nth-child(3) {
+  top: 6px;
+  transform: rotate(-45deg);
+}
+.menuLabel {
+  font-family: var(--f-en);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+.menuLayer {
+  position: fixed;
+  inset: 54px 0 0;
+  z-index: 1;
+  pointer-events: none;
+  visibility: hidden;
+}
+.menuLayer[data-open] {
+  pointer-events: auto;
+  visibility: visible;
+}
+.menuBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 25, 23, 0.45);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.menuLayer[data-open] .menuBackdrop {
+  opacity: 1;
+}
+.menuPanel {
+  position: relative;
+  max-width: 480px;
+  max-height: calc(100dvh - 54px);
+  margin: 0 auto;
+  padding: 10px 16px 26px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: #fff;
+  background-color: var(--ink);
+  background-image:
+    linear-gradient(to right, var(--line-dark) 1px, transparent 1px),
+    linear-gradient(var(--line-dark) 1px, transparent 1px);
+  background-size: 20px 20px;
+  border-radius: 0 0 22px 22px;
+  transform: translateY(-12px);
+  opacity: 0;
+  transition:
+    transform 0.3s,
+    opacity 0.25s;
+}
+.menuLayer[data-open] .menuPanel {
+  transform: none;
+  opacity: 1;
+}
+.menuList li a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 4px;
+  font-size: 15px;
+  font-weight: 900;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.menuList li a b {
+  font-family: var(--f-en);
+  font-size: 12px;
+  font-style: italic;
+  color: var(--orange);
+}
+.menuList li a span {
+  margin-left: auto;
+  color: #a8a29e;
+}
+.menuPanel .ctaBig {
+  margin-top: 20px;
+  min-height: 60px;
+}
+.menuSub {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 16px;
+  margin-top: 18px;
+  font-size: 11.5px;
+  color: #a8a29e;
+}
+
+/* 下の階層のページの見出し（白い方眼に、英字・明朝の見出し・説明） */
+.pageHead {
+  padding: 18px 16px 30px;
+  text-align: center;
+}
+.pageBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mute);
+}
+.pageBackRow {
+  text-align: left;
+}
+.pageHead .eyebrow {
+  margin-top: 22px;
+}
+.pageTitle {
+  margin-top: 12px;
+  font-family: var(--f-serif);
+  font-size: clamp(27px, calc(27px + 5 * (100vw - 375px) / 105), 32px);
+  font-weight: 900;
+  line-height: 1.45;
+}
+.pageLead {
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 1.85;
+  white-space: pre-line;
+  color: var(--mute);
+}
+.pageMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 12px;
+  margin-top: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mute);
+}
+/* 見出しの下の本文。中身は今のサイトの部品をそのまま使う */
+.pageBody {
+  padding: 8px 16px 48px;
+  background: #fff;
+}
+
+/* 下の階層のページの最後に置く、無料体験への案内カード */
+.ctaCard {
+  padding: 26px 16px 24px;
+  text-align: center;
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: 22px;
+}
+.ctaCardTitle {
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+.ctaCardBody {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--mute);
+}
+.ctaCard .ctaBig {
+  margin-top: 18px;
+}
+.ctaCardWrap {
+  padding: 8px 12px 48px;
+}
+
+/* よくある質問 */
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 26px;
+  padding: 0 14px;
+}
+.faqItem {
+  overflow: hidden;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+}
+.faqQ {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 12px;
+  font-size: 14.5px;
+  font-weight: 900;
+  line-height: 1.5;
+  text-align: left;
+}
+.faqMark {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  font-family: var(--f-en);
+  font-size: 14px;
+  font-weight: 900;
+  font-style: italic;
+  color: #fff;
+  background: var(--grad);
+  border-radius: 50%;
+}
+.faqA .faqMark {
+  color: var(--ink);
+  background: var(--lime);
+}
+.faqToggle {
+  margin-left: auto;
+  font-size: 18px;
+  color: var(--orange-2);
+  transition: transform 0.3s;
+}
+.faqItem[data-open] .faqToggle {
+  transform: rotate(45deg);
+}
+.faqA {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 12px;
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--ink-2);
+  background: #fafaf9;
+  border-top: 1.5px dashed rgba(28, 25, 23, 0.25);
+}
+.faqA p {
+  padding-top: 4px;
+}
+.faqA[hidden] {
+  display: none;
+}
+
+/* コラム・お知らせの一覧（トップの欄と、一覧ページ） */
+.postList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 26px;
+  padding: 0 14px;
+}
+.postCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 14px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 0.15s;
+}
+.postCard:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.postMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--mute);
+}
+.postTitle {
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.55;
+}
+.postDesc {
+  display: -webkit-box;
+  margin-top: 6px;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--mute);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.postArrow {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--orange-2);
+}
+.newsRow {
+  padding: 14px 4px;
+  border-bottom: 1.5px dashed rgba(28, 25, 23, 0.2);
+}
+.newsRow:first-child {
+  border-top: 1.5px dashed rgba(28, 25, 23, 0.2);
+}
+.moreLink {
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+.moreLink a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  font-size: 13.5px;
+  font-weight: 900;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+}
+.emptyNote {
+  margin: 26px 14px 0;
+  padding: 22px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--mute);
+  background: #fff;
+  border: 2px dashed rgba(28, 25, 23, 0.25);
+  border-radius: 14px;
+}
+
+
+/* ---------- 規約ページ（特定商取引法に基づく表記・プライバシーポリシー） ---------- */
+.legalHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 40px 20px 32px;
+  background: #f6f6f4;
+}
+.legalSub {
+  font-family: var(--f-en);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+.legalTitle {
+  font-size: clamp(22px, calc(22px + 4 * (100vw - 375px) / 105), 26px);
+  font-weight: 900;
+  line-height: 1.4;
+}
+.legalBar {
+  width: 40px;
+  height: 4px;
+  background: var(--ink);
+}
+.legalBody {
+  padding: 16px 20px 40px;
+  background: #fff;
+}
+.legalIntro {
+  padding: 16px 0 8px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: #333;
+}
+.legalRow {
+  padding: 20px 0;
+  border-bottom: 1px solid #e5e5e5;
+}
+.legalRow:last-of-type {
+  border-bottom: 0;
+}
+.legalLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.legalMarker {
+  flex-shrink: 0;
+  width: 4px;
+  height: 15px;
+  background: var(--orange-2);
+}
+.legalText {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-line;
+  color: #333;
+}
+.legalText p + p,
+.legalText p + ul,
+.legalText ul + p {
+  margin-top: 8px;
+}
+.legalText ul {
+  white-space: normal;
+}
+.legalText li {
+  position: relative;
+  padding-left: 1em;
+}
+.legalText li::before {
+  content: "・";
+  position: absolute;
+  left: 0;
+}
+.legalText a {
+  font-weight: 700;
+  color: var(--orange-2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.legalSign {
+  padding-top: 24px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #333;
 }
 
 /* =========================================================

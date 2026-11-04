@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronRight } from "lucide-react";
 import { courseSearch, siteMeta, subjectIndex } from "@/lib/content";
 import { getAllSubjectData } from "@/lib/subjects-data";
 import { getArticleSummaries } from "@/lib/articles";
 import type { Subject } from "@/lib/subjects";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { isSubjectPublished, subjectSearchName, withDefaultOpenGraph } from "@/lib/seo";
+import { CtaCard, PageHead } from "@/components/lp/LpParts";
 
 // 管理画面から検定の内容を直しても反映されるよう、検定詳細ページと同じ間隔で作り直す
 export const revalidate = 300;
@@ -63,22 +64,7 @@ export default async function SubjectIndexPage() {
         ]}
       />
 
-      <section className="bg-gradient-to-b from-lemon-100 to-canvas px-5 pb-8 pt-6">
-        <Link href="/" className="inline-flex items-center gap-1 text-xs font-bold text-ink-muted">
-          <ChevronLeft className="size-4" strokeWidth={3} />
-          {subjectIndex.backLabel}
-        </Link>
-
-        <h1 className="mt-5 font-round text-3xl font-bold leading-tight text-ink">
-          {subjectIndex.title}
-        </h1>
-        <p className="mt-1 font-script text-xl font-bold tracking-widest text-ink-muted">
-          {subjectIndex.englishTitle}
-        </p>
-        <p className="mt-4 whitespace-pre-line text-[13px] leading-relaxed text-ink-muted">
-          {subjectIndex.lead}
-        </p>
-      </section>
+      <PageHead eyebrow={subjectIndex.englishTitle} title={subjectIndex.title} lead={subjectIndex.lead} back={{ label: subjectIndex.backLabel, href: "/" }} />
 
       {/* 比較表。「全商検定 一覧」で検索する人は、まず全体を表で見比べたいので冒頭に置く。
           スマホでは表だけを横にスクロールさせ、ページ全体ははみ出させない */}
@@ -218,22 +204,13 @@ export default async function SubjectIndexPage() {
         </p>
       </section>
 
-      <section className="bg-canvas px-5 pb-14 pt-4">
-        <div className="rounded-3xl bg-gradient-to-br from-sakura-100 to-lemon-100 p-6 text-center shadow-md shadow-sakura-600/10 ring-1 ring-sakura-200">
-          <p className="font-round text-lg font-bold leading-snug text-ink">
-            {subjectIndex.cta.title}
-          </p>
-          <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">{subjectIndex.cta.body}</p>
-          <Link
-            href={subjectIndex.cta.href}
-            data-cta="subject_index"
-            className="mt-5 inline-flex items-center gap-4 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-7 py-3.5 font-round text-[15px] font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5"
-          >
-            {subjectIndex.cta.label}
-            <ArrowRight className="size-5" strokeWidth={2.5} />
-          </Link>
-        </div>
-      </section>
+      <CtaCard
+        title={subjectIndex.cta.title}
+        body={subjectIndex.cta.body}
+        label={subjectIndex.cta.label}
+        href={subjectIndex.cta.href}
+        cta="subject_index"
+      />
     </main>
   );
 }

@@ -45,7 +45,9 @@ export function TeacherList({
       {items.map((teacher) => (
         <li
           key={teacher.id}
-          className="overflow-hidden rounded-3xl bg-canvas shadow-md shadow-sakura-600/10 ring-1 ring-sakura-100"
+          // トップの講師カードから /teachers#<講師のid> で飛んでくる（上の固定ヘッダーぶん余白をとる）
+          id={teacher.id}
+          className="scroll-mt-20 overflow-hidden rounded-3xl bg-canvas shadow-md shadow-sakura-600/10 ring-1 ring-sakura-100"
         >
           {/* 写真（1:1）。photo が未設定の講師はプレースホルダーを表示する */}
           {teacher.photo ? (

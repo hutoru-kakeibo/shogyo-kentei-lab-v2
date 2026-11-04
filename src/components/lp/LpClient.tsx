@@ -211,7 +211,7 @@ export function StickyCta({ label, href }: { label: string; href: string }) {
   }, []);
 
   return (
-    <div className={`${s.sticky} ${show ? "" : s.stickyHidden}`} aria-hidden={!show}>
+    <div className={`${s.sticky} ${show ? "" : s.stickyHidden}`} aria-hidden={!show} data-cta="sticky">
       <a href={href} className={s.ctaBig} tabIndex={show ? 0 : -1}>
         <span className={s.ctaMain}>{label}</span>
       </a>
@@ -273,4 +273,47 @@ export function ScrollEffects() {
     };
   }, []);
   return null;
+}
+
+/** よくある質問。押すと答えが開く（いくつでも同時に開ける） */
+export function LpFaq({ items }: { items: readonly { id: string; question: string; answer: string }[] }) {
+  const [openIds, setOpenIds] = useState<string[]>([]);
+  const toggle = (id: string) =>
+    setOpenIds((current) => (current.includes(id) ? current.filter((v) => v !== id) : [...current, id]));
+
+  return (
+    <ul className={s.faqList}>
+      {items.map((item) => {
+        const open = openIds.includes(item.id);
+        const panelId = `${item.id}-answer`;
+        return (
+          <li key={item.id} className={s.faqItem} data-open={open || undefined} data-rv>
+            <h3>
+              <button
+                type="button"
+                className={s.faqQ}
+                aria-expanded={open}
+                aria-controls={panelId}
+                onClick={() => toggle(item.id)}
+              >
+                <span className={s.faqMark} aria-hidden>
+                  Q
+                </span>
+                {item.question}
+                <span className={s.faqToggle} aria-hidden>
+                  ＋
+                </span>
+              </button>
+            </h3>
+            <div id={panelId} className={s.faqA} hidden={!open}>
+              <span className={s.faqMark} aria-hidden>
+                A
+              </span>
+              <p>{item.answer}</p>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }

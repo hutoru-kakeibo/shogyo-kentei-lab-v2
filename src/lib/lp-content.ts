@@ -46,8 +46,7 @@ export const lp = {
     barSub: ["ZENSHO KENTEI", "ONLINE", "TUTORING"],
   },
 
-  /** 試作のあいだは、試作の申し込みページ（/lp/trial）へつなぐ。差し替えるときは /trial に戻す */
-  cta: { small: "今すぐ無料で", big: "体験授業を申し込む", href: "/lp/trial" },
+  cta: { small: "今すぐ無料で", big: "体験授業を申し込む", href: "/trial" },
   stickyCta: "今すぐ無料で体験授業を申し込む",
 
   about: {
@@ -172,7 +171,29 @@ export const lp = {
     note: "次の画面で、学年・連絡先・体験の日時を選べます。",
   },
 
-  /** 申し込みページ（/lp/trial）。入力項目そのものは今のサイトと同じフォーム（TrialForm）を使う */
+  /**
+   * ページ上のメニュー（全ページ共通）。トップの場所へ飛ぶものは、下のページからも動くよう "/#..." にする
+   */
+  nav: [
+    { label: "商業検定ラボについて", href: "/#about" },
+    { label: "合格へ繋げる5つの約束", href: "/#promise" },
+    { label: "合格者の声", href: "/#voice" },
+    { label: "対応検定", href: "/subjects" },
+    { label: "受講の流れ", href: "/#flow" },
+    { label: "講師紹介", href: "/teachers" },
+    { label: "よくある質問", href: "/#faq" },
+    { label: "コラム", href: "/columns" },
+    { label: "新着情報", href: "/news" },
+  ],
+  /** メニューの下の段に小さく出すリンク */
+  navSub: [
+    { label: "プライバシーポリシー", href: "/privacy" },
+    { label: "特定商取引法に基づく表記", href: "/tokushoho" },
+    { label: "ログイン", href: "/login" },
+  ],
+  menuCta: "無料体験を申し込む",
+
+  /** 申し込みページ（/trial）。入力項目そのものは今のサイトと同じフォーム（TrialForm）を使う */
   trial: {
     back: "トップに戻る",
     labels: [[{ t: "まずは1時間の" }], [{ t: "無料体験", hl: true }, { t: "から!!" }]],

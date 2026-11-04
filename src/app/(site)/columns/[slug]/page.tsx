@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, ChevronLeft } from "lucide-react";
 import { columns, siteMeta } from "@/lib/content";
 import { formatArticleDate, getArticleBySlug, toJstDate } from "@/lib/articles";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { ArticleCategoryTag } from "@/components/ui/ArticleCategoryTag";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { withDefaultOpenGraph } from "@/lib/seo";
+import { CtaCard, PageHead } from "@/components/lp/LpParts";
+import s from "@/components/lp/lp.module.css";
 
 export const revalidate = 300;
 
@@ -66,64 +67,36 @@ export default async function ColumnPage({ params }: PageProps<"/columns/[slug]"
       />
 
       <article>
-        <header className="bg-gradient-to-b from-sky-100 to-canvas px-5 pb-8 pt-6">
-          <Link
-            href="/columns"
-            className="inline-flex items-center gap-1 text-xs font-bold text-ink-muted"
-          >
-            <ChevronLeft className="size-4" strokeWidth={3} />
-            {columns.backToList}
-          </Link>
-
-          <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <ArticleCategoryTag category={article.category} />
-            <span className="text-xs font-bold text-ink-muted">
-              {columns.publishedLabel}{" "}
-              <time dateTime={article.publishedAt}>{formatArticleDate(article.publishedAt)}</time>
-            </span>
-            {showUpdated ? (
-              <span className="text-xs font-bold text-ink-muted">
-                {columns.updatedLabel}{" "}
-                <time dateTime={updatedDate}>{formatArticleDate(updatedDate)}</time>
+        <PageHead
+          eyebrow={columns.englishTitle}
+          title={article.title}
+          lead={article.description}
+          back={{ label: columns.backToList, href: "/columns" }}
+          meta={
+            <>
+              <ArticleCategoryTag category={article.category} />
+              <span>
+                {columns.publishedLabel}{" "}
+                <time dateTime={article.publishedAt}>{formatArticleDate(article.publishedAt)}</time>
               </span>
-            ) : null}
-          </div>
+              {showUpdated ? (
+                <span>
+                  {columns.updatedLabel} <time dateTime={updatedDate}>{formatArticleDate(updatedDate)}</time>
+                </span>
+              ) : null}
+            </>
+          }
+        />
 
-          <h1 className="mt-3 font-round text-2xl font-bold leading-snug text-ink">
-            {article.title}
-          </h1>
-          <p className="mt-4 text-[13px] leading-relaxed text-ink-muted">{article.description}</p>
-        </header>
-
-        <div className="bg-white px-5 py-10">
+        <div className={s.pageBody} style={{ paddingTop: 32 }}>
           <ArticleBody source={article.body} />
         </div>
       </article>
 
-      <section className="bg-canvas px-5 pb-14 pt-4">
-        <div className="rounded-3xl bg-gradient-to-br from-sakura-100 to-lemon-100 p-6 text-center shadow-md shadow-sakura-600/10 ring-1 ring-sakura-200">
-          <p className="font-round text-lg font-bold leading-snug text-ink">{columns.cta.title}</p>
-          <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">{columns.cta.body}</p>
-          <Link
-            href={columns.cta.href}
-            data-cta="column_cta"
-            className="mt-5 inline-flex items-center gap-4 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-7 py-3.5 font-round text-[15px] font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5"
-          >
-            {columns.cta.label}
-            <ArrowRight className="size-5" strokeWidth={2.5} />
-          </Link>
-        </div>
-
-        <div className="mt-8 text-center">
-          <Link
-            href="/columns"
-            className="inline-flex items-center gap-1 text-[13px] font-bold text-ink-muted"
-          >
-            <ChevronLeft className="size-4" strokeWidth={3} />
-            {columns.backToList}
-          </Link>
-        </div>
-      </section>
+      <CtaCard title={columns.cta.title} body={columns.cta.body} label={columns.cta.label} href={columns.cta.href} cta="column_cta" />
+      <p className={s.moreLink} style={{ margin: 0, paddingBottom: 40, background: "#fff" }}>
+        <Link href="/columns">‹ {columns.backToList}</Link>
+      </p>
     </main>
   );
 }

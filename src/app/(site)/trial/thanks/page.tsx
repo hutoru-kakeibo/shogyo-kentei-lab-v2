@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { ScrollEffects } from "@/components/lp/LpClient";
-import { CtaBig, Logo, LpFooter, Marquee, Parts } from "@/components/lp/LpParts";
+import { CtaBig, Logo, Marquee, Parts } from "@/components/lp/LpParts";
 import s from "@/components/lp/lp.module.css";
 import { teachers } from "@/lib/content";
 import { lp } from "@/lib/lp-content";
@@ -11,7 +11,7 @@ import { lp } from "@/lib/lp-content";
  * 申し込みの記録（GA4 の generate_lead）は、移ってくる前にフォーム側で送っている
  */
 export const metadata: Metadata = {
-  title: "お申し込みありがとうございます（試作）",
+  title: "お申し込みありがとうございます",
   robots: { index: false, follow: false },
 };
 
@@ -25,24 +25,8 @@ export default function LpThanksPage() {
   );
 
   return (
-    <div className={s.root}>
-      <noscript>
-        <style>{"[data-rv]{opacity:1!important;translate:none!important}"}</style>
-      </noscript>
+    <>
       <ScrollEffects />
-      <div className={s.col}>
-        <header className={s.topBar}>
-          <Logo />
-          <a
-            href={t.instagram}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${s.topLink} ${s.topLinkOrange}`}
-          >
-            無料授業を見る ›
-          </a>
-        </header>
-
         <main>
           {/* ファーストビュー */}
           <section className={`${s.hero} ${s.gridW}`}>
@@ -143,8 +127,6 @@ export default function LpThanksPage() {
           </section>
         </main>
 
-        <LpFooter links={lp.footer.links} copyright={lp.footer.copyright} />
-      </div>
-    </div>
+    </>
   );
 }

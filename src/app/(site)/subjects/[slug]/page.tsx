@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, BookOpen, Check, ChevronLeft, CircleHelp, Lightbulb } from "lucide-react";
+import { ArrowRight, BookOpen, Check, CircleHelp, Lightbulb } from "lucide-react";
 import { subjects, type Subject, type SubjectTone } from "@/lib/subjects";
 import { getSubjectData } from "@/lib/subjects-data";
 import { relatedColumnSlugs, relatedSubjectSlugs, subjectFaqs } from "@/lib/subject-faq";
@@ -21,18 +21,12 @@ import { examSchedules, roundStatuses } from "@/lib/exam-schedule";
 import { todayInJapan } from "@/lib/trial-schedule";
 import { BreadcrumbJsonLd, CourseJsonLd, FaqJsonLd } from "@/components/seo/JsonLd";
 import { isSubjectPublished, subjectSearchName, withDefaultOpenGraph } from "@/lib/seo";
+import { CtaCard, PageHead } from "@/components/lp/LpParts";
 
 // 管理画面から編集した内容を、再ビルドなしで反映するため5分ごとに作り直す
 export const revalidate = 300;
 
 /** 検定ごとのアクセント色 */
-const heroTone: Record<SubjectTone, string> = {
-  sakura: "from-sakura-100 to-canvas",
-  lemon: "from-lemon-100 to-canvas",
-  sky: "from-sky-100 to-canvas",
-  mint: "from-mint-100 to-canvas",
-};
-
 const badgeTone: Record<SubjectTone, string> = {
   sakura: "bg-sakura-500 text-white",
   lemon: "bg-lemon-400 text-ink",
@@ -63,7 +57,7 @@ export async function generateMetadata({
   // タイトルにもその言葉を入れて、検索結果で何が書いてあるページか伝わるようにしている
   const searchName = subjectSearchName(subject);
   const title = subjectMetaTitles[slug] ?? `${searchName}とは？級・合格基準と勉強法`;
-  const description = `${searchName}の級構成・実施時期・合格基準から、つまずきやすいポイントと勉強法まで解説。商業高校生専門のオンライン個別指導による対策内容と料金もまとめています。`;
+  const description = `${searchName}の級構成・実施時期・合格基準から、つまずきやすいポイントと勉強法まで解説。商業高校生専門のオンライン個別指導による対策内容もまとめています。`;
 
   return {
     title,
@@ -135,34 +129,21 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
       {/* この検定のよくある質問を、検索エンジンにもQ&Aとして渡す */}
       {faqItems.length > 0 ? <FaqJsonLd items={faqItems} /> : null}
 
-      {/* ヒーロー */}
-      <section className={`bg-gradient-to-b px-5 pb-10 pt-6 ${heroTone[subject.tone]}`}>
-        {/* 構造化データのパンくずと同じ階層を画面にも出す */}
-        <nav
-          aria-label="パンくず"
-          className="flex items-center gap-1 text-xs font-bold text-ink-muted"
-        >
-          <ChevronLeft className="size-4" strokeWidth={3} />
-          <Link href="/">ホーム</Link>
-          <span aria-hidden="true">›</span>
-          <Link href="/subjects">{subjectIndex.title}</Link>
-        </nav>
-
-        <p className="mt-5">
-          <span
-            className={`rounded-full px-3 py-1 font-round text-[11px] font-bold ${badgeTone[subject.tone]}`}
-          >
-            {subject.category}
-          </span>
-        </p>
-        <h1 className="mt-3 font-round text-3xl font-bold leading-tight text-ink">
-          {subject.name}
-        </h1>
-        <p className="mt-2 text-[11px] font-bold text-ink-muted">{subject.fullName}</p>
-        <p className="mt-5 font-round text-lg font-bold leading-relaxed text-ink">
-          {subject.catchCopy}
-        </p>
-      </section>
+      {/* 見出し（パンくずは構造化データで出している） */}
+      <PageHead
+        eyebrow="SUBJECT"
+        title={subject.name}
+        lead={subject.catchCopy}
+        back={{ label: `${subjectIndex.title}に戻る`, href: "/subjects" }}
+        meta={
+          <>
+            <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${badgeTone[subject.tone]}`}>
+              {subject.category}
+            </span>
+            <span>{subject.fullName}</span>
+          </>
+        }
+      />
 
       {/* どんな検定？ */}
       <section className="bg-white px-5 py-10">
@@ -279,51 +260,6 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
             </li>
           ))}
         </ul>
-      </section>
-
-      {/* 料金プラン */}
-      <section className="bg-canvas px-5 py-10">
-        <SectionTitle tone={subject.tone}>料金プラン</SectionTitle>
-        <p className="mt-4 text-[13px] leading-relaxed text-ink-muted">{subject.pricing.lead}</p>
-
-        <ul className="mt-5 space-y-3">
-          {subject.pricing.plans.map((plan) => (
-            <li
-              key={plan.grade}
-              className="flex items-center justify-between gap-3 rounded-2xl bg-white px-5 py-4 shadow-md shadow-sakura-600/10 ring-1 ring-sakura-100"
-            >
-              <span
-                className={`rounded-xl px-3 py-1.5 font-round text-base font-bold ${badgeTone[subject.tone]}`}
-              >
-                {plan.grade}
-              </span>
-              <span className="flex items-baseline gap-1">
-                <span className="font-round text-3xl font-bold text-ink">{plan.price}</span>
-                <span className="text-[12px] font-bold text-ink-muted">{plan.unit}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-
-        {subject.pricing.options.length > 0 ? (
-          <ul className="mt-4 space-y-3">
-            {subject.pricing.options.map((option) => (
-              <li key={option.name} className="rounded-2xl bg-lemon-100 p-4 ring-1 ring-lemon-300">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-round text-[15px] font-bold text-ink">{option.name}</span>
-                  <span className="whitespace-nowrap font-round text-base font-bold text-ink">
-                    {option.price}
-                  </span>
-                </div>
-                <p className="mt-1.5 text-[12px] leading-relaxed text-ink-muted">
-                  {option.description}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        <p className="mt-4 text-[11px] leading-relaxed text-ink-muted">{subject.pricing.note}</p>
       </section>
 
       {/* 学び方をえらぶ。映像授業（オンデマンド）に講座がある検定だけ、個別指導と並べて見せる */}
@@ -497,21 +433,12 @@ export default async function SubjectPage({ params }: PageProps<"/subjects/[slug
       ) : null}
 
       {/* CTA */}
-      <section className="bg-white px-5 py-12 text-center">
-        <p className="font-round text-lg font-bold leading-relaxed text-ink">
-          {subject.name}の対策、
-          <br />
-          まずは1時間の無料体験から。
-        </p>
-        <Link
-          href={trialHref}
-          data-cta="subject_page"
-          className="mt-6 inline-flex items-center gap-6 rounded-full bg-gradient-to-r from-sakura-400 to-sakura-600 px-8 py-4 font-round text-base font-bold text-white shadow-lg shadow-sakura-600/30 transition active:translate-y-0.5"
-        >
-          {flow.ctaLabel}
-          <ArrowRight className="size-5" strokeWidth={2.5} />
-        </Link>
-      </section>
+      <CtaCard
+        title={`${subject.name}の対策、まずは1時間の無料体験から。`}
+        label={flow.ctaLabel}
+        href={trialHref}
+        cta="subject_page"
+      />
     </main>
   );
 }
