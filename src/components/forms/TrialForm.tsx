@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, CircleAlert, CircleCheck, Send } from "lucide-react";
-import { courseSearch, lessonForm, targetGradeOptions, trialForm } from "@/lib/content";
-import { submitTrialApplication, type ApplicationKind } from "@/lib/trial-actions";
+import { courseSearch, targetGradeOptions, trialForm } from "@/lib/content";
+import { submitTrialApplication } from "@/lib/trial-actions";
 import { trackEvent } from "@/lib/analytics";
 import { loadVisitSources } from "@/lib/visit-source";
 import { isValidTel } from "@/lib/tel";
@@ -59,27 +59,22 @@ const initialValues: Values = {
   website: "",
 };
 
-/** 無料体験と授業で変わる文言。それ以外の項目・エラー文言は共通 */
-const copyByKind = {
-  trial: {
-    subjectLabel: "受けたい検定",
-    scheduleLabel: trialForm.schedule.label,
-    messageLabel: "相談したいこと",
-    messagePlaceholder: "つまずいているところ、検定日までの残り期間など",
-    submitLabel: trialForm.submitLabel,
-    steps: trialForm.steps,
-    done: trialForm.done,
-  },
-  lesson: {
-    subjectLabel: lessonForm.subjectLabel,
-    scheduleLabel: lessonForm.scheduleLabel,
-    messageLabel: lessonForm.messageLabel,
-    messagePlaceholder: lessonForm.messagePlaceholder,
-    submitLabel: lessonForm.submitLabel,
-    steps: lessonForm.steps,
-    done: lessonForm.done,
-  },
+/**
+ * フォームの文言。2026-11-05 までは既存生徒の授業の申し込み（/lesson/…）にも使っていたが、
+ * 授業の予約は生徒管理アプリ（LINE）にまとめたので、無料体験だけになった
+ */
+const copy = {
+  subjectLabel: "受けたい検定",
+  scheduleLabel: trialForm.schedule.label,
+  messageLabel: "相談したいこと",
+  messagePlaceholder: "つまずいているところ、検定日までの残り期間など",
+  submitLabel: trialForm.submitLabel,
+  steps: trialForm.steps,
+  done: trialForm.done,
 } as const;
+
+/** GA4 に送る form_kind（以前は授業の申し込みと分けていた。値はそのまま） */
+const kind = "trial";
 
 /** 各ステップで入力チェックする項目（並びはエラー時にスクロールする順） */
 const stepFields: (keyof Values)[][] = [
@@ -190,10 +185,6 @@ function ErrorText({ id, message }: { id: string; message?: string }) {
 }
 
 type Props = {
-  /** 無料体験（既定）か、既存生徒の授業か */
-  kind?: ApplicationKind;
-  /** 授業の申し込みのときに、ページURLの秘密のトークンを渡す */
-  lessonToken?: string;
   /** 検定ページから来たときの、その検定ページのURL名（/trial?subject=… の値） */
   subjectSlug?: string;
   /**
@@ -203,9 +194,8 @@ type Props = {
   doneHref?: string;
 };
 
-export function TrialForm({ kind = "trial", lessonToken, subjectSlug, doneHref }: Props) {
+export function TrialForm({ subjectSlug, doneHref }: Props) {
   const router = useRouter();
-  const copy = copyByKind[kind];
   // 検定ページから来たときは、その検定を「受けたい検定」に選んだ状態で始める。
   // 本人の操作ではないので、入力開始（form_start）には数えない
   const [values, setValues] = useState<Values>(() => {
@@ -266,12 +256,10 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug, doneHref }
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
       next.email = messages.email;
     }
-    if (kind === "trial") {
-      if (!values.tel.trim()) {
-        next.tel = messages.required;
-      } else if (!isValidTel(values.tel)) {
-        next.tel = messages.tel;
-      }
+    if (!values.tel.trim()) {
+      next.tel = messages.required;
+    } else if (!isValidTel(values.tel)) {
+      next.tel = messages.tel;
     }
     if (!values.preferredDate) {
       next.preferredDate = messages.date;
@@ -340,13 +328,9 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug, doneHref }
     setSendError("");
 
     // どこから来たか（ブラウザが覚えていた流入元）を、無料体験の申し込みと一緒に保存する
-    const sources = kind === "trial" ? loadVisitSources() : { first: null, last: null };
+    const sources = loadVisitSources();
     const result = await submitTrialApplication({
       ...values,
-      heardFrom: kind === "trial" ? values.heardFrom : "",
-      tel: kind === "trial" ? values.tel : "",
-      kind,
-      lessonToken,
       firstTouch: sources.first,
       lastTouch: sources.last,
     });
@@ -378,7 +362,7 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug, doneHref }
     trackEvent("generate_lead", {
       form_kind: kind,
       subject: values.subject,
-      ...(kind === "trial" ? { heard_from: values.heardFrom || "none" } : {}),
+      heard_from: values.heardFrom || "none",
     });
     if (doneHref) {
       // ページが切り替わるまでのあいだに、もう一度送信されないようにボタンを止めておく
@@ -562,25 +546,23 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug, doneHref }
             <ErrorText id="email-error" message={errors.email} />
           </div>
 
-          {/* 電話番号。無料体験だけ（授業を申し込む在籍生の番号は塾が把握している） */}
-          {kind === "trial" ? (
-            <div>
-              <FieldLabel htmlFor="tel" label="電話番号" required />
-              <input
-                id="tel"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder="090-1234-5678"
-                value={values.tel}
-                onChange={(event) => update("tel", event.target.value)}
-                aria-invalid={Boolean(errors.tel)}
-                aria-describedby={errors.tel ? "tel-error" : undefined}
-                className={inputClass}
-              />
-              <ErrorText id="tel-error" message={errors.tel} />
-            </div>
-          ) : null}
+          {/* 電話番号 */}
+          <div>
+            <FieldLabel htmlFor="tel" label="電話番号" required />
+            <input
+              id="tel"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="090-1234-5678"
+              value={values.tel}
+              onChange={(event) => update("tel", event.target.value)}
+              aria-invalid={Boolean(errors.tel)}
+              aria-describedby={errors.tel ? "tel-error" : undefined}
+              className={inputClass}
+            />
+            <ErrorText id="tel-error" message={errors.tel} />
+          </div>
         </div>
 
         {/* ステップ3：希望日時・知ったきっかけ・保護者の同意 */}
@@ -601,25 +583,23 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug, doneHref }
             </div>
           </div>
 
-          {/* 知ったきっかけ（任意。無料体験だけ） */}
-          {kind === "trial" ? (
-            <div>
-              <FieldLabel htmlFor="heardFrom" label={trialForm.heardFrom.label} />
-              <select
-                id="heardFrom"
-                value={values.heardFrom}
-                onChange={(event) => update("heardFrom", event.target.value)}
-                className={inputClass}
-              >
-                <option value="">選択してください</option>
-                {trialForm.heardFrom.options.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
+          {/* 知ったきっかけ（任意） */}
+          <div>
+            <FieldLabel htmlFor="heardFrom" label={trialForm.heardFrom.label} />
+            <select
+              id="heardFrom"
+              value={values.heardFrom}
+              onChange={(event) => update("heardFrom", event.target.value)}
+              className={inputClass}
+            >
+              <option value="">選択してください</option>
+              {trialForm.heardFrom.options.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* 保護者の同意 */}
           <div id="consent" className="rounded-2xl bg-lemon-50 p-4 ring-1 ring-lemon-200">

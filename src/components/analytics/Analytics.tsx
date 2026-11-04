@@ -11,6 +11,7 @@ import { GA_ID, ctaLocationFromPath, trackEvent } from "@/lib/analytics";
  *
  * 授業申し込みページ（/lesson/<秘密の文字列>）では読み込まない。
  * 読み込むと、閲覧したURL＝秘密の文字列がGoogleに送られてしまうため。
+ * （このページは 2026-11-05 に閉じた。古いURLを開かれたときも文字列を送らないよう、外さずに残している）
  */
 export function Analytics() {
   const pathname = usePathname();

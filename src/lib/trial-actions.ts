@@ -3,14 +3,10 @@
 import { getSupabaseClient } from "@/lib/supabase";
 import { sendTrialMails } from "@/lib/emails";
 import { isValidTargetGrade, trialForm } from "@/lib/content";
-import { isValidLessonToken } from "@/lib/lesson-token";
 import { isBookable, type TrialSchedule } from "@/lib/trial-schedule";
 import { loadTrialSchedule } from "@/lib/trial-schedule-data";
 import { sanitizeVisitSource, type VisitSource } from "@/lib/visit-source";
 import { isValidTel, normalizeTel } from "@/lib/tel";
-
-/** 申し込みの種別。無料体験と、既存生徒の授業 */
-export type ApplicationKind = "trial" | "lesson";
 
 export type TrialApplicationInput = {
   subject: string;
@@ -20,7 +16,7 @@ export type TrialApplicationInput = {
   gradeYear: string;
   school: string;
   email: string;
-  /** 電話番号（無料体験だけ必須。授業の申し込みでは空） */
+  /** 電話番号（必須） */
   tel: string;
   preferredDate: string;
   preferredTime: string;
@@ -28,11 +24,7 @@ export type TrialApplicationInput = {
   consent: boolean;
   /** ボット対策の隠し項目。人間が入力することはない */
   website: string;
-  /** 省略時は無料体験 */
-  kind?: ApplicationKind;
-  /** 授業の申し込みのときだけ必要な、ページURLの秘密のトークン */
-  lessonToken?: string;
-  /** 知ったきっかけ（任意。無料体験だけ） */
+  /** 知ったきっかけ（任意） */
   heardFrom?: string;
   /** ブラウザが覚えていた流入元（初めて来たとき・申し込み前に外から来たとき）。visit-source.ts */
   firstTouch?: VisitSource | null;
@@ -91,7 +83,30 @@ export async function getTakenSlots(fromDate: string, toDate: string): Promise<T
 }
 
 /**
- * 無料体験・授業の申し込みを保存する。
+ * 生徒管理アプリ（LINE。C:\商業検定ラボ\student-manager）の、新しい申し込みを塾長の LINE に知らせる窓口。
+ * 申し込みの id だけを送り、アプリは台帳からその行を読み直して、今できた申し込みのときだけ1回知らせる
+ * （合言葉は使わない。id 以外は送らないので、ここから個人情報は出ない）
+ */
+const STUDENT_APP_NOTIFY_URL = "https://shogyo-lab-students.morita-tomonobu15.workers.dev/api/website/trial";
+
+/** アプリに知らせる。失敗しても申し込みは成立しているので、記録だけ残す */
+async function notifyStudentApp(id: string) {
+  try {
+    const res = await fetch(STUDENT_APP_NOTIFY_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id }),
+      signal: AbortSignal.timeout(5000),
+      cache: "no-store",
+    });
+    if (!res.ok) console.error("[trial] 生徒管理アプリへの知らせに失敗しました:", res.status);
+  } catch (error) {
+    console.error("[trial] 生徒管理アプリへの知らせに失敗しました:", error);
+  }
+}
+
+/**
+ * 無料体験の申し込みを保存する（2026-11-05 から無料体験だけ。既存生徒の授業は生徒管理アプリで予約する）。
  * ブラウザ側の検証はすり抜けられるため、サーバー側でも必須項目を確認してから書き込む。
  */
 export async function submitTrialApplication(
@@ -99,13 +114,6 @@ export async function submitTrialApplication(
 ): Promise<SubmitResult> {
   // 隠し項目が埋まっているのは自動投稿。保存せず、正常終了として返す
   if (input.website.trim()) return { ok: true };
-
-  const kind: ApplicationKind = input.kind === "lesson" ? "lesson" : "trial";
-
-  // 授業の申し込みは、既存生徒に伝えた秘密のURLからだけ受け付ける
-  if (kind === "lesson" && !isValidLessonToken(input.lessonToken ?? "")) {
-    return { ok: false, message: trialForm.errors.invalid };
-  }
 
   const filled =
     input.subject &&
@@ -115,7 +123,7 @@ export async function submitTrialApplication(
     input.gradeYear &&
     input.school.trim() &&
     emailPattern.test(input.email.trim()) &&
-    (kind === "lesson" || isValidTel(input.tel ?? "")) &&
+    isValidTel(input.tel ?? "") &&
     input.preferredDate &&
     input.preferredTime &&
     input.consent;
@@ -135,7 +143,10 @@ export async function submitTrialApplication(
     return { ok: false, message: trialForm.errors.send };
   }
 
+  // id はここで決める（匿名のキーでは保存した行を読み返せないため）。アプリへの知らせに使う
+  const id = crypto.randomUUID();
   const row = {
+    id,
     subject: input.subject,
     target_grade: input.targetGrade,
     name: input.name.trim(),
@@ -144,33 +155,28 @@ export async function submitTrialApplication(
     school: input.school.trim(),
     email: input.email.trim(),
     // 数字だけにそろえて保存する（管理画面の「電話する」でそのまま使える）
-    tel: kind === "trial" ? normalizeTel(input.tel) : null,
+    tel: normalizeTel(input.tel),
     preferred_date: input.preferredDate,
     preferred_time: input.preferredTime,
     message: input.message.trim() || null,
     consent: input.consent,
-    // 無料体験は列の既定値（trial）に任せる。kind 列の追加前でも無料体験の申し込みが止まらないようにするため
-    ...(kind === "lesson" ? { kind } : {}),
+    // 種別（kind）は列の既定値（trial）に任せる
   };
 
-  // 知ったきっかけと流入元は無料体験だけ。きっかけは決まった選択肢のときだけ残す
-  const heardFrom =
-    kind === "trial" && (trialForm.heardFrom.options as readonly string[]).includes(input.heardFrom ?? "")
-      ? input.heardFrom
-      : null;
-  const source =
-    kind === "trial"
-      ? {
-          heard_from: heardFrom,
-          first_touch: sanitizeVisitSource(input.firstTouch),
-          last_touch: sanitizeVisitSource(input.lastTouch),
-        }
-      : {};
+  // きっかけは決まった選択肢のときだけ残す
+  const heardFrom = (trialForm.heardFrom.options as readonly string[]).includes(input.heardFrom ?? "")
+    ? input.heardFrom
+    : null;
+  const source = {
+    heard_from: heardFrom,
+    first_touch: sanitizeVisitSource(input.firstTouch),
+    last_touch: sanitizeVisitSource(input.lastTouch),
+  };
 
   let { error } = await supabase.from("trial_applications").insert({ ...row, ...source });
 
   // 列を足すSQLの実行前は、きっかけ・流入元を外して保存し直す（申し込みそのものを止めないため）
-  if (error && MISSING_COLUMN.includes(error.code) && kind === "trial") {
+  if (error && MISSING_COLUMN.includes(error.code)) {
     console.error("[trial] きっかけ・流入元の列が無いため、外して保存します:", error.message);
     ({ error } = await supabase.from("trial_applications").insert(row));
   }
@@ -178,15 +184,15 @@ export async function submitTrialApplication(
   if (error) {
     if (error.code === UNIQUE_VIOLATION) {
       // 同じ日時にほぼ同時に別の人が申し込んだ場合、DB側の一意制約に阻まれてここに来る。
-      // 無料体験と授業は同じ枠を共有するので、どちらの申し込みとも重ならないようになっている。
+      // 生徒管理アプリの授業とも同じ枠を共有するので、どちらとも重ならないようになっている。
       return { ok: false, message: trialForm.errors.slotTaken };
     }
     console.error("[trial] 申し込みの保存に失敗しました:", error.message);
     return { ok: false, message: trialForm.errors.send };
   }
 
-  // 保存は済んでいるので、メールが送れなくても申し込みは成立させる
-  await sendTrialMails({ ...input, kind, heardFrom: heardFrom ?? undefined });
+  // 保存は済んでいるので、メールや LINE の知らせが送れなくても申し込みは成立させる
+  await Promise.all([sendTrialMails({ ...input, heardFrom: heardFrom ?? undefined }), notifyStudentApp(id)]);
 
   return { ok: true };
 }

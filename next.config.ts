@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
       { source: "/lp", destination: "/", permanent: true },
       { source: "/lp/trial", destination: "/trial", permanent: true },
       { source: "/lp/trial/thanks", destination: "/trial/thanks", permanent: true },
+      // 無料体験の申し込み・受付設定は、生徒管理アプリ（LINE）の管理画面「体験」へ移した（2026-11-05）
+      { source: "/admin/trials/:path*", destination: "https://liff.line.me/2012302910-kaWguuEa/admin/trials", permanent: false },
+      { source: "/admin/trial-settings", destination: "https://liff.line.me/2012302910-kaWguuEa/admin/trials/settings", permanent: false },
     ];
   },
   images: {

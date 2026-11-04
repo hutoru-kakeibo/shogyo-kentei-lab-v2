@@ -3,7 +3,7 @@ import { notifyTo, sendMail } from "@/lib/mailer";
 import type { TrialApplicationInput } from "@/lib/trial-actions";
 
 /**
- * 無料体験・授業の申し込みに関するメール本文。
+ * 無料体験の申し込みに関するメール本文。
  * 文面を直すときはこのファイルを編集する。
  */
 
@@ -16,15 +16,10 @@ function formatDate(value: string) {
   return `${year}年${month}月${day}日（${weekday}）`;
 }
 
-function isLesson(input: TrialApplicationInput) {
-  return input.kind === "lesson";
-}
-
 /** 申し込み内容の一覧（両方のメールで使う） */
 function summary(input: TrialApplicationInput) {
-  const lesson = isLesson(input);
   return [
-    `${lesson ? "受講する検定" : "受けたい検定"} : ${input.subject}`,
+    `受けたい検定 : ${input.subject}`,
     `受験予定の級 : ${input.targetGrade}`,
     `希望日時     : ${formatDate(input.preferredDate)} ${input.preferredTime}`,
     `お名前       : ${input.name}${input.kana ? `（${input.kana}）` : ""}`,
@@ -32,20 +27,16 @@ function summary(input: TrialApplicationInput) {
     `学校名       : ${input.school}`,
     `メール       : ${input.email}`,
     ...(input.tel ? [`電話番号     : ${input.tel}`] : []),
-    lesson ? "先生に伝えたいこと:" : "相談したいこと:",
+    "相談したいこと:",
     input.message ? input.message : "（未記入）",
   ].join("\n");
 }
 
 /** 申込者へ送る自動返信 */
 async function sendApplicantMail(input: TrialApplicationInput) {
-  const lesson = isLesson(input);
-  const opening = lesson
-    ? `${siteMeta.name}の授業にお申し込みいただき、ありがとうございます。`
-    : `このたびは${siteMeta.name}の無料体験にお申し込みいただき、ありがとうございます。`;
-  const nextStep = lesson
-    ? "担当者が内容を確認のうえ、このメールアドレスへ授業の日時確定をご連絡します。"
-    : "担当者が内容を確認のうえ、3日以内にこのメールアドレスへご連絡します。\n日程の調整もそのときに行いますので、少しお待ちください。";
+  const opening = `このたびは${siteMeta.name}の無料体験にお申し込みいただき、ありがとうございます。`;
+  const nextStep =
+    "担当者が内容を確認のうえ、3日以内にこのメールアドレスへご連絡します。\n日程の調整もそのときに行いますので、少しお待ちください。";
 
   const text = `${input.name} 様
 
@@ -69,31 +60,28 @@ ${siteMeta.url}
 
   return sendMail({
     to: input.email,
-    subject: lesson
-      ? `【${siteMeta.name}】授業のお申し込みを受け付けました`
-      : `【${siteMeta.name}】無料体験のお申し込みを受け付けました`,
+    subject: `【${siteMeta.name}】無料体験のお申し込みを受け付けました`,
     text,
   });
 }
 
 /** 塾側へ送る通知 */
 async function sendOwnerMail(input: TrialApplicationInput) {
-  const lesson = isLesson(input);
   // 知ったきっかけは塾側だけに載せる（申込者への控えには不要なため）。流入元は管理画面の詳細で見る
-  const heardFrom = lesson ? "" : `\n知ったきっかけ : ${input.heardFrom || "（未回答）"}`;
-  const text = `${lesson ? "授業の申し込み（既存生徒）" : "無料体験の申し込み"}が入りました。
+  const heardFrom = `\n知ったきっかけ : ${input.heardFrom || "（未回答）"}`;
+  const text = `無料体験の申し込みが入りました。
 
 ------------------------------------
 ${summary(input)}${heardFrom}
 ------------------------------------
 
-申し込み一覧は、管理画面の「申し込み（無料体験・授業）」で確認できます。
+申し込みの一覧・対応状況は、生徒管理アプリ（LINEのマイページ）の管理画面の「体験」で確認できます。
 このメールに返信すると、申込者に直接返信できます。
 `;
 
   return sendMail({
     to: notifyTo,
-    subject: `【${lesson ? "授業申込" : "体験申込"}】${input.name}さん / ${input.subject} ${input.targetGrade} / ${formatDate(input.preferredDate)} ${input.preferredTime}`,
+    subject: `【体験申込】${input.name}さん / ${input.subject} ${input.targetGrade} / ${formatDate(input.preferredDate)} ${input.preferredTime}`,
     text,
     // 通知メールにそのまま返信すれば申込者へ届くようにする
     replyTo: input.email,

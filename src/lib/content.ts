@@ -594,134 +594,6 @@ export const trialForm = {
 };
 
 /**
- * 既存生徒用「授業のお申し込み」ページの文言。
- * 項目・日時の選び方・エラー文言は trialForm と共通で、受付枠も無料体験と共有する。
- * ページのURLは /lesson/<環境変数 LESSON_FORM_TOKEN の値>（公開リポジトリに載せないため）。
- */
-export const lessonForm = {
-  title: "授業のお申し込み",
-  englishTitle: "LESSON",
-  lead: "在籍中の生徒さん専用の、授業のお申し込みページです。\n受講する検定と希望の日時を選んで、お申し込みください。",
-  subjectLabel: "受講する検定",
-  scheduleLabel: "授業の希望日時",
-  messageLabel: "先生に伝えたいこと",
-  messagePlaceholder: "授業で取り組みたいこと、検定日までの残り期間など",
-  submitLabel: "この内容で授業を申し込む",
-  steps: [
-    { label: "検定", heading: "受講する検定を教えてください" },
-    { label: "あなたのこと", heading: "あなたのことを教えてください" },
-    { label: "授業日", heading: "授業の日時を選んでください" },
-  ],
-  done: {
-    title: "お申し込みありがとうございます",
-    message:
-      "内容を確認のうえ、ご記入いただいた連絡先へ授業の日時確定をご連絡します。しばらくお待ちください。",
-    backLabel: "トップページに戻る",
-  },
-} as const;
-
-/** 管理画面：無料体験の受付設定 */
-export const adminTrialSettings = {
-  title: "無料体験の受付設定",
-  lead: "申し込みフォームのカレンダーで選べる日時を設定します。保存すると、すぐにフォームへ反映されます。",
-  notice:
-    "設定を変えても、すでに入っている申し込みは取り消されません。受付を止めた日時の申し込みは「無料体験の申し込み」から個別に対応してください。",
-  sections: {
-    range: "受付期間",
-    weekly: "曜日ごとの受付時間",
-    closed: "休講日（受付を止める日）",
-  },
-  fields: {
-    leadDays: "何日後から受け付けるか",
-    leadDaysHint: "0なら当日から、2なら明後日から申し込めます",
-    rangeDays: "何日先まで受け付けるか",
-    rangeDaysHint: "今日から数えて何日先まで、カレンダーで選べるようにするか",
-    daysUnit: "日",
-    previewPrefix: "今日時点で選べる期間：",
-    weeklyHint:
-      "受け付ける時間をタップしてピンクにします。一覧にない時間（例：16:30）は、下の欄から追加できます。すべて外した曜日は受付なしになります。",
-    noSlots: "受付なし",
-    slotCountSuffix: "枠",
-    clearDay: "すべて外す",
-    customTime: "時間を追加",
-    closedHint: "祝日や講師の都合で休む日を追加すると、その日はカレンダーで選べなくなります。",
-    closedDate: "休講日の日付",
-    addClosed: "追加",
-    closedEmpty: "休講日は登録されていません。",
-    pastLabel: "過ぎた日",
-    removeLabel: "を削除",
-  },
-  /** ワンタップで選べる時間の候補 */
-  presetTimes: [
-    "09:00",
-    "10:00",
-    "11:00",
-    "12:00",
-    "13:00",
-    "14:00",
-    "15:00",
-    "16:00",
-    "17:00",
-    "18:00",
-    "19:00",
-    "20:00",
-    "21:00",
-    "22:00",
-  ],
-  weekdayNames: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
-  /** 日ごとの受付時間（カレンダーから日付を選んで設定する） */
-  dateOverrideEditor: {
-    title: "日ごとの受付時間",
-    hint: "カレンダーで日付を選ぶと、その日だけ受付時間を変えたり、休講にしたりできます。何も変えていない日は、上の「曜日ごとの受付時間」のとおりに受け付けます。",
-    selectHint: "カレンダーから、設定したい日を選んでください。",
-    prevMonth: "前の月",
-    nextMonth: "次の月",
-    legendOverride: "この日だけの設定",
-    legendClosed: "休講日",
-    statusOverride: "この日だけの設定",
-    statusClosed: "休講日",
-    statusWeeklySuffix: "の設定どおり",
-    slotSuffix: "枠",
-    closedShort: "休",
-    noSlotsShort: "受付なし",
-    toggleHint: "時間をタップすると、この日だけの設定になります（曜日の設定は変わりません）。",
-    customTime: "時間を追加",
-    noSlotsMessage: "受け付ける時間がありません。この日は受付なしになります。",
-    closeDay: "この日を休講にする",
-    closedMessage: "この日は休講日のため、受付していません。",
-    reopen: "休講を解除する",
-    resetToWeekly: "曜日の設定に戻す",
-    listTitle: "この日だけの設定をしている日",
-    listEmpty: "まだありません。",
-    removeTimeLabel: "を外す",
-    legendBooked: "予約が入っている日",
-    bookedLabel: "予約あり",
-    bookedCountSuffix: "件",
-    bookedSummaryPrefix: "予約が入っている時間：",
-    bookedHint:
-      "（水色の時間は、申し込みをキャンセルするまで受付時間を変更できません。キャンセルは「申し込み（無料体験・授業）」から行えます）",
-    bookedOnClosedWarning:
-      "（休講日にしても、入っている申し込みは取り消されません。「申し込み（無料体験・授業）」から個別に対応してください）",
-    removeOverrideLabel: "の設定を削除して曜日の設定に戻す",
-    errorFormat: "日ごとの受付時間の形式が正しくありません",
-    notSetUp:
-      "日ごとの受付時間を保存するには、先に Supabase で supabase/trial_settings_date_overrides.sql を実行してください。",
-  },
-  saveLabel: "この設定で保存する",
-  savingLabel: "保存しています…",
-  savedLabel: "保存しました。申し込みフォームのカレンダーに反映されています。",
-  errors: {
-    range:
-      "「何日後から」は0〜60日、「何日先まで」は1〜365日で、「何日後から」が「何日先まで」以下になるように入力してください",
-    time: "受付時間の形式が正しくありません（例：17:00）",
-    date: "休講日の日付の形式が正しくありません",
-    notSetUp:
-      "受付設定の保存先がまだありません。Supabase で supabase/trial_settings.sql を実行してください。",
-    generic: "保存できませんでした。時間をおいて再度お試しください。",
-  },
-} as const;
-
-/**
  * 合格者の声（合格体験記カード）。
  * 通常は Supabase の voices テーブルから取得する（src/lib/voice.ts）。
  * ここに書く items は、Supabase 未設定・取得失敗時のフォールバック用の仮データ。
@@ -873,16 +745,11 @@ export const admin = {
       description: "一覧・作成・編集・削除・公開のON/OFF",
     },
     {
+      // 2026-11-05 に生徒管理アプリ（LINE）の管理画面「体験」へ移した（運営者の依頼）
       id: "trials",
-      href: "/admin/trials",
-      label: "申し込み（無料体験・授業）",
-      description: "一覧の確認、対応状況の更新",
-    },
-    {
-      id: "trial-settings",
-      href: "/admin/trial-settings",
-      label: "無料体験の受付設定",
-      description: "受付期間・曜日ごとの受付時間・休講日の変更",
+      href: "https://liff.line.me/2012302910-kaWguuEa/admin/trials",
+      label: "無料体験の申し込み・受付設定",
+      description: "生徒管理アプリ（LINEのマイページ）の管理画面「体験」に移しました",
     },
     {
       id: "voices",
@@ -930,63 +797,6 @@ export const adminNews = {
     required: "入力してください",
     generic: "保存できませんでした。時間をおいて再度お試しください。",
     notFound: "記事が見つかりませんでした。",
-  },
-} as const;
-
-/** 管理画面：無料体験の申し込み */
-export const adminTrials = {
-  title: "申し込み（無料体験・授業）",
-  emptyMessage: "まだ申し込みがありません。",
-  /** kind カラムの値と、画面上の表示・バッジ色の対応 */
-  kindOptions: [
-    { value: "trial", label: "無料体験", badgeClass: "bg-sky-100 text-sky-600" },
-    { value: "lesson", label: "授業", badgeClass: "bg-lemon-200 text-ink" },
-  ] as const,
-  backLabel: "一覧に戻る",
-  statusLabel: "対応状況",
-  /** status カラムの値と、画面上の表示・バッジ色の対応 */
-  statusOptions: [
-    { value: "new", label: "新規", badgeClass: "bg-sakura-100 text-sakura-600" },
-    { value: "contacted", label: "連絡済み", badgeClass: "bg-lemon-200 text-ink" },
-    { value: "done", label: "完了", badgeClass: "bg-mint-100 text-mint-500" },
-    { value: "canceled", label: "キャンセル", badgeClass: "bg-ink-muted/10 text-ink-muted" },
-  ] as const,
-  /** 詳細画面の項目ラベル */
-  fields: {
-    kind: "種別",
-    subject: "検定",
-    targetGrade: "受験予定の級",
-    name: "お名前",
-    kana: "ふりがな",
-    gradeYear: "学年",
-    school: "学校名",
-    email: "メールアドレス",
-    tel: "電話番号",
-    preferred: "希望日時",
-    message: "相談・伝えたいこと",
-    heardFrom: "知ったきっかけ",
-    firstTouch: "初めて来た経路",
-    lastTouch: "申し込み前に来た経路",
-    createdAt: "申し込み日時",
-  },
-  noMessage: "（記入なし）",
-  noTel: "（未記入）",
-  noHeardFrom: "（未回答）",
-  /** 流入元の仕組みを入れる前の申し込みや、ブラウザが記録を残せなかったとき */
-  noSource: "（記録なし）",
-  /** 流入元の medium の値を、画面での呼び方に直す */
-  sourceMediumLabels: {
-    none: "直接（ブックマーク・URLの入力・アプリ内のリンクなど）",
-    organic: "検索",
-    social: "SNS",
-    referral: "ほかのサイトのリンク",
-  } as Record<string, string>,
-  updateSubmitLabel: "対応状況を更新する",
-  updatingLabel: "更新しています…",
-  updatedLabel: "更新しました",
-  errors: {
-    generic: "更新できませんでした。時間をおいて再度お試しください。",
-    notFound: "申し込みが見つかりませんでした。",
   },
 } as const;
 
