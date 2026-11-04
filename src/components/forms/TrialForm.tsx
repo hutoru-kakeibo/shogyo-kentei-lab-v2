@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, CircleAlert, CircleCheck, Send } from "lucide-react";
 import { courseSearch, lessonForm, trialForm } from "@/lib/content";
@@ -143,11 +144,15 @@ const subjectOptions = [
  * 検定ページの「無料体験」ボタンは /trial?subject=<検定ページのURL名> へ飛ぶ。
  * そのURL名から、「受けたい検定」の選択肢の名前を引くための対応表
  */
-const subjectNameBySlug: Record<string, string> = Object.fromEntries(
-  courseSearch.categories.flatMap((category) =>
-    category.items.map((item) => [item.href.replace("/subjects/", ""), item.name]),
+const subjectNameBySlug: Record<string, string> = {
+  ...Object.fromEntries(
+    courseSearch.categories.flatMap((category) =>
+      category.items.map((item) => [item.href.replace("/subjects/", ""), item.name]),
+    ),
   ),
-);
+  // 新トップページ（/lp）の「まだ決めていない・相談したい」から来たとき
+  consult: trialForm.undecidedSubject,
+};
 
 const inputClass =
   "w-full rounded-xl border border-sakura-200 bg-white px-4 py-3 text-[15px] text-ink outline-none placeholder:text-ink-muted/60 focus:border-sakura-400 focus:ring-2 focus:ring-sakura-200";
@@ -191,9 +196,15 @@ type Props = {
   lessonToken?: string;
   /** 検定ページから来たときの、その検定ページのURL名（/trial?subject=… の値） */
   subjectSlug?: string;
+  /**
+   * 送信が終わったあとに移るページ（新しいデザインの完了ページなど）。
+   * 指定しないときは、これまでどおりフォームの場所に完了メッセージを出す
+   */
+  doneHref?: string;
 };
 
-export function TrialForm({ kind = "trial", lessonToken, subjectSlug }: Props) {
+export function TrialForm({ kind = "trial", lessonToken, subjectSlug, doneHref }: Props) {
+  const router = useRouter();
   const copy = copyByKind[kind];
   // 検定ページから来たときは、その検定を「受けたい検定」に選んだ状態で始める。
   // 本人の操作ではないので、入力開始（form_start）には数えない
@@ -352,6 +363,12 @@ export function TrialForm({ kind = "trial", lessonToken, subjectSlug }: Props) {
       subject: values.subject,
       ...(kind === "trial" ? { heard_from: values.heardFrom || "none" } : {}),
     });
+    if (doneHref) {
+      // ページが切り替わるまでのあいだに、もう一度送信されないようにボタンを止めておく
+      setSubmitting(true);
+      router.push(doneHref);
+      return;
+    }
     setDone(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
