@@ -21,7 +21,7 @@ function PromiseWindow({ kind, no }: { kind: (typeof lp.promises)[number]["windo
   const titles = {
     weak: "つまずきやすいところ",
     subjects: "対策できる検定",
-    chat: "質問ノート",
+    chat: "実際のやり取り",
     schedule: "今週の予定",
     roadmap: "3年間のロードマップ",
   };
