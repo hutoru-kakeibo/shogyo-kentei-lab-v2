@@ -27,7 +27,7 @@ function Field({
 
 /**
  * 「行を追加・削除できるリスト」の共通編集UI。
- * basics / training / pricing.plans / pricing.options / struggles のどれも
+ * basics / pricing.plans / struggles のどれも
  * このパターン（オブジェクトの配列を増減させながら編集する）なので、まとめて面倒を見る。
  */
 function RepeatableList<T extends Record<string, string>>({
@@ -59,7 +59,7 @@ function RepeatableList<T extends Record<string, string>>({
               </label>
               {field.multiline ? (
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={item[field.key]}
                   onChange={(event) => updateItem(index, field.key, event.target.value)}
                   className={`${inputClass} resize-y`}
@@ -109,7 +109,7 @@ function RepeatableStrings({
       {items.map((item, index) => (
         <div key={index} className="flex items-start gap-2">
           <textarea
-            rows={2}
+            rows={3}
             value={item}
             onChange={(event) =>
               onChange(items.map((v, i) => (i === index ? event.target.value : v)))
@@ -138,6 +138,36 @@ function RepeatableStrings({
   );
 }
 
+/** 検定ページの1つの区切り（見出しと説明）。fixed は「ここでは直せません」の欄 */
+function Section({
+  title,
+  hint,
+  fixed = false,
+  children,
+}: {
+  title: string;
+  hint: string;
+  fixed?: boolean;
+  children?: React.ReactNode;
+}) {
+  return (
+    <section
+      className={`space-y-4 rounded-2xl p-4 ring-1 ${fixed ? "bg-canvas/60 ring-sakura-100" : "bg-white ring-sakura-200"}`}
+    >
+      <div>
+        <h2 className={`font-round text-base font-bold ${fixed ? "text-ink-muted" : "text-ink"}`}>{title}</h2>
+        <p className="mt-1 text-[12px] leading-relaxed text-ink-muted">{hint}</p>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/**
+ * 検定ページの編集フォーム。上から、検定ページに出る順に並べる（2026-11-05）。
+ * 料金はページに出していないが、生徒管理アプリのコマ予約に使うので、級ごとの料金だけ最後に残す。
+ * 料金のリード文・注記・追加オプションはどこにも出していないので、画面には出さずに今の値のまま保存する
+ */
 export function SubjectForm({ initial }: { initial: Subject }) {
   const router = useRouter();
   const { fields, sections } = adminSubjects;
@@ -151,10 +181,7 @@ export function SubjectForm({ initial }: { initial: Subject }) {
   const [overview, setOverview] = useState(initial.overview);
   const [basics, setBasics] = useState(initial.basics);
   const [training, setTraining] = useState(initial.training);
-  const [pricingLead, setPricingLead] = useState(initial.pricing.lead);
   const [pricingPlans, setPricingPlans] = useState(initial.pricing.plans);
-  const [pricingOptions, setPricingOptions] = useState(initial.pricing.options);
-  const [pricingNote, setPricingNote] = useState(initial.pricing.note);
   const [struggles, setStruggles] = useState(initial.struggles);
 
   const [submitting, setSubmitting] = useState(false);
@@ -178,7 +205,7 @@ export function SubjectForm({ initial }: { initial: Subject }) {
       overview,
       basics,
       training,
-      pricing: { lead: pricingLead, plans: pricingPlans, options: pricingOptions, note: pricingNote },
+      pricing: { ...initial.pricing, plans: pricingPlans },
       struggles,
     };
 
@@ -195,41 +222,24 @@ export function SubjectForm({ initial }: { initial: Subject }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {/* 基本情報 */}
-      <section className="space-y-4">
-        <h2 className="font-round text-base font-bold text-ink">{sections.basicInfo}</h2>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <p className="text-[12px] leading-relaxed text-ink-muted">{adminSubjects.editLead}</p>
+
+      <Section title={sections.top.title} hint={sections.top.hint}>
+        <Field label={fields.category}>
+          <input type="text" value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass} />
+        </Field>
         <Field label={fields.name}>
           <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
         </Field>
         <Field label={fields.fullName}>
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className={inputClass}
-          />
+          <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} />
         </Field>
-        <Field label={fields.category}>
-          <input
-            type="text"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className={inputClass}
-          />
-        </Field>
-        <Field label={fields.organizer}>
-          <input
-            type="text"
-            value={organizer}
-            onChange={(e) => setOrganizer(e.target.value)}
-            className={inputClass}
-          />
+        <Field label={fields.catchCopy}>
+          <input type="text" value={catchCopy} onChange={(e) => setCatchCopy(e.target.value)} className={inputClass} />
         </Field>
         <div>
-          <label className="mb-1.5 block font-round text-[13px] font-bold text-ink">
-            {fields.tone}
-          </label>
+          <label className="mb-1.5 block font-round text-[13px] font-bold text-ink">{fields.tone}</label>
           <div className="flex flex-wrap gap-2">
             {adminSubjects.toneOptions.map((option) => (
               <label
@@ -253,97 +263,44 @@ export function SubjectForm({ initial }: { initial: Subject }) {
             ))}
           </div>
         </div>
-        <Field label={fields.catchCopy}>
-          <input
-            type="text"
-            value={catchCopy}
-            onChange={(e) => setCatchCopy(e.target.value)}
-            className={inputClass}
-          />
-        </Field>
+      </Section>
+
+      <Section title={sections.about.title} hint={sections.about.hint}>
         <Field label={fields.overview}>
           <textarea
-            rows={4}
+            rows={5}
             value={overview}
             onChange={(e) => setOverview(e.target.value)}
             className={`${inputClass} resize-y`}
           />
         </Field>
-      </section>
+        <div>
+          <p className="mb-1 font-round text-[13px] font-bold text-ink">{fields.basics}</p>
+          <p className="mb-2 text-[11px] leading-relaxed text-ink-muted">{fields.basicsHint}</p>
+          <RepeatableList
+            items={basics}
+            onChange={setBasics}
+            fields={[
+              { key: "label", label: fields.basicsLabel },
+              { key: "value", label: fields.basicsValue },
+            ]}
+            emptyItem={{ label: "", value: "" }}
+          />
+        </div>
+        <Field label={fields.organizer}>
+          <input type="text" value={organizer} onChange={(e) => setOrganizer(e.target.value)} className={inputClass} />
+        </Field>
+      </Section>
 
-      {/* 基本情報テーブル */}
-      <section className="space-y-3">
-        <h2 className="font-round text-base font-bold text-ink">{sections.basics}</h2>
-        <RepeatableList
-          items={basics}
-          onChange={setBasics}
-          fields={[
-            { key: "label", label: fields.basicsLabel },
-            { key: "value", label: fields.basicsValue },
-          ]}
-          emptyItem={{ label: "", value: "" }}
-        />
-      </section>
+      <Section title={sections.schedule.title} hint={sections.schedule.hint} fixed />
 
-      {/* 対策内容 */}
-      <section className="space-y-3">
-        <h2 className="font-round text-base font-bold text-ink">{sections.training}</h2>
+      <Section title={sections.training.title} hint={sections.training.hint}>
         <RepeatableStrings items={training} onChange={setTraining} />
-      </section>
+      </Section>
 
-      {/* 料金プラン */}
-      <section className="space-y-4">
-        <h2 className="font-round text-base font-bold text-ink">{sections.pricing}</h2>
-        <Field label={fields.pricingLead}>
-          <input
-            type="text"
-            value={pricingLead}
-            onChange={(e) => setPricingLead(e.target.value)}
-            className={inputClass}
-          />
-        </Field>
+      <Section title={sections.choice.title} hint={sections.choice.hint} fixed />
 
-        <div>
-          <p className="mb-2 text-[12px] font-bold text-ink-muted">{sections.pricingPlans}</p>
-          <RepeatableList
-            items={pricingPlans}
-            onChange={setPricingPlans}
-            fields={[
-              { key: "grade", label: fields.planGrade },
-              { key: "price", label: fields.planPrice },
-              { key: "unit", label: fields.planUnit },
-            ]}
-            emptyItem={{ grade: "", price: "", unit: "" }}
-          />
-        </div>
-
-        <div>
-          <p className="mb-2 text-[12px] font-bold text-ink-muted">{sections.pricingOptions}</p>
-          <RepeatableList
-            items={pricingOptions}
-            onChange={setPricingOptions}
-            fields={[
-              { key: "name", label: fields.optionName },
-              { key: "price", label: fields.optionPrice },
-              { key: "description", label: fields.optionDescription, multiline: true },
-            ]}
-            emptyItem={{ name: "", price: "", description: "" }}
-          />
-        </div>
-
-        <Field label={fields.pricingNote}>
-          <input
-            type="text"
-            value={pricingNote}
-            onChange={(e) => setPricingNote(e.target.value)}
-            className={inputClass}
-          />
-        </Field>
-      </section>
-
-      {/* つまずきやすいポイント */}
-      <section className="space-y-3">
-        <h2 className="font-round text-base font-bold text-ink">{sections.struggles}</h2>
+      <Section title={sections.struggles.title} hint={sections.struggles.hint}>
         <RepeatableList
           items={struggles}
           onChange={setStruggles}
@@ -353,7 +310,22 @@ export function SubjectForm({ initial }: { initial: Subject }) {
           ]}
           emptyItem={{ problem: "", solution: "" }}
         />
-      </section>
+      </Section>
+
+      <Section title={sections.fixed.title} hint={sections.fixed.hint} fixed />
+
+      <Section title={sections.pricing.title} hint={sections.pricing.hint}>
+        <RepeatableList
+          items={pricingPlans}
+          onChange={setPricingPlans}
+          fields={[
+            { key: "grade", label: fields.planGrade },
+            { key: "price", label: fields.planPrice },
+            { key: "unit", label: fields.planUnit },
+          ]}
+          emptyItem={{ grade: "", price: "", unit: "円 / 1時間" }}
+        />
+      </Section>
 
       {error ? (
         <p
@@ -365,8 +337,7 @@ export function SubjectForm({ initial }: { initial: Subject }) {
         </p>
       ) : null}
 
-      {/* フォーム下部にも保存ボタンを置き、長いフォームを最後までスクロールしなくても
-          上に戻らず保存できるようにする（sticky で常に見える位置に固定） */}
+      {/* 長いフォームでも、いつでも保存できるように下に固定する */}
       <div className="sticky bottom-0 -mx-6 flex items-center gap-3 border-t border-sakura-100 bg-white/95 px-6 py-4 backdrop-blur">
         <button
           type="submit"
@@ -378,7 +349,7 @@ export function SubjectForm({ initial }: { initial: Subject }) {
         <button
           type="button"
           onClick={() => router.push("/admin/subjects")}
-          className="rounded-full bg-white px-6 py-3 font-round text-[15px] font-bold text-ink-muted ring-1 ring-sakura-200"
+          className="rounded-full bg-white px-5 py-3 font-round text-[14px] font-bold text-ink-muted ring-1 ring-sakura-200"
         >
           {adminSubjects.cancelLabel}
         </button>

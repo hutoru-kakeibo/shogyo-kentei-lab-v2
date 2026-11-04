@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ExternalLink } from "lucide-react";
 import { adminSubjects } from "@/lib/content";
 import { getSubjectForAdmin } from "@/lib/admin/subject-actions";
 import { SubjectForm } from "@/components/admin/SubjectForm";
@@ -22,10 +22,21 @@ export default async function AdminSubjectEditPage({
         <ChevronLeft className="size-4" strokeWidth={3} />
         {adminSubjects.title}に戻る
       </Link>
-      <h1 className="mt-4 font-round text-2xl font-bold text-ink">
-        {subject.name}
-        <span className="ml-2 text-[13px] font-bold text-ink-muted">{adminSubjects.editLabel}</span>
-      </h1>
+      <div className="mt-4 flex flex-wrap items-end justify-between gap-2">
+        <h1 className="font-round text-2xl font-bold text-ink">
+          {subject.name}
+          <span className="ml-2 text-[13px] font-bold text-ink-muted">{adminSubjects.editLabel}</span>
+        </h1>
+        <a
+          href={`/subjects/${slug}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 text-[12px] font-bold text-sakura-600 underline"
+        >
+          {adminSubjects.viewPageLabel}
+          <ExternalLink className="size-3.5" strokeWidth={2.5} />
+        </a>
+      </div>
 
       <div className="mt-6 rounded-3xl bg-white p-6 shadow-md shadow-sakura-600/10 ring-1 ring-sakura-100">
         <SubjectForm initial={subject} />

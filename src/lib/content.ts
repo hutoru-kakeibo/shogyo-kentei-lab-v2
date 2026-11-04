@@ -746,13 +746,6 @@ export const admin = {
       description: "一覧・作成・編集・削除・公開のON/OFF",
     },
     {
-      // 2026-11-05 に生徒管理アプリ（LINE）の管理画面「体験」へ移した（運営者の依頼）
-      id: "trials",
-      href: "https://liff.line.me/2012302910-kaWguuEa/admin/trials",
-      label: "無料体験の申し込み・受付設定",
-      description: "生徒管理アプリ（LINEのマイページ）の管理画面「体験」に移しました",
-    },
-    {
       id: "voices",
       href: "/admin/voices",
       label: "合格体験記",
@@ -843,51 +836,61 @@ export const adminVoices = {
   },
 } as const;
 
-/** 管理画面：検定ページ */
+/**
+ * 管理画面：検定ページ。
+ * 2026-11-05 に、いまの検定ページ（/subjects/<URL名>）の並び順に合わせて作りかえた（運営者の依頼）。
+ * 料金はページに出していないが、生徒管理アプリのコマ予約の料金に使うので、いちばん下に残している
+ */
 export const adminSubjects = {
   title: "検定ページの管理",
+  lead: "検定ページ（対応検定から開くページ）の文章を直します。保存すると、数分でサイトに反映されます。",
   editLabel: "編集",
+  viewPageLabel: "ページを見る",
+  publishedLabel: "公開中",
+  draftLabel: "準備中",
+  editLead: "上から、検定ページに出る順に並んでいます。「ここでは直せません」の欄は、プログラムの中で管理しています（直したいときは依頼してください）。",
   saveLabel: "保存する",
   savingLabel: "保存しています…",
   savedLabel: "保存しました",
-  cancelLabel: "キャンセル",
-  addRowLabel: "＋ 行を追加",
+  cancelLabel: "一覧に戻る",
+  addRowLabel: "行を追加",
   removeRowLabel: "削除",
-  /** セクション見出し */
+  /** 入力の見出し（検定ページの並び順） */
   sections: {
-    basicInfo: "基本情報",
-    basics: "基本情報テーブル",
-    training: `対策内容`,
-    pricing: "料金プラン",
-    pricingPlans: "級ごとの受講料",
-    pricingOptions: "追加オプション（任意）",
-    struggles: "つまずきやすいポイント",
+    top: { title: "ページのいちばん上", hint: "検定名・キャッチコピー・カテゴリ・正式名称。対応検定一覧と、検索結果に出る説明文にも使います。" },
+    about: { title: "どんな検定？", hint: "概要の文章と、その下の基本情報の表。" },
+    schedule: { title: "今年度の試験日程", hint: "ここでは直せません。公式の要項から写した日程を、プログラムの中で管理しています（年度が変わったら書きかえます）。" },
+    training: { title: "商業検定ラボの対策", hint: "番号付きで並ぶ、対策の内容。1行に1つ。" },
+    choice: { title: "学び方をえらぶ", hint: "ここでは直せません（映像授業に講座がある検定だけに出ます）。" },
+    struggles: { title: "つまずきやすいポイント", hint: "つまずくところと、その解決方法の組。" },
+    fixed: { title: "よくある質問・あわせて読みたいコラム・一緒に受ける人が多い検定", hint: "ここでは直せません（プログラムの中で管理しています）。" },
+    pricing: {
+      title: "授業の料金（ページには出しません）",
+      hint: "検定ページには出していません。生徒管理アプリ（LINE）で生徒がコマ予約をするときの料金に使います。級は申し込みフォームと同じ書き方（3級・2級・準2級プラス など）か、どの級も同じなら「各級」にしてください。",
+    },
   },
   /** 各入力欄のラベル */
   fields: {
     name: "検定名（短い表記）",
     fullName: "正式名称",
-    category: "カテゴリ",
-    organizer: "主催団体",
-    tone: "アクセント色",
-    catchCopy: "キャッチコピー",
+    category: "カテゴリ（検定名の上の小さなラベル）",
+    organizer: "主催団体（「最新の日程は◯◯の発表をご確認ください」に入る）",
+    tone: "アクセント色（見出しやラベルの色）",
+    catchCopy: "キャッチコピー（検定名の下の一文）",
     overview: "概要",
+    basics: "基本情報の表",
+    basicsHint: "項目名が「級」「実施回数」（または「統一試験」）「合格基準」の行は、対応検定一覧の比較表にも出ます。項目名を変えると比較表が空欄になるので注意してください。",
     basicsLabel: "項目名（例：実施回数）",
     basicsValue: "内容（例：年2回）",
-    trainingItem: "対策内容の1項目",
-    pricingLead: "料金プランのリード文",
-    pricingNote: "料金プラン下部の注記",
     planGrade: "級",
-    planPrice: "金額",
+    planPrice: "金額（例：3,100）",
     planUnit: "単位（例：円 / 1時間）",
-    optionName: "オプション名",
-    optionPrice: "金額",
-    optionDescription: "説明",
     struggleProblem: "つまずきポイント",
     struggleSolution: "解決方法",
   },
+  /** sakura はサイトの配色の切り替え（2026-11-05）でオレンジに見える */
   toneOptions: [
-    { value: "sakura", label: "ピンク" },
+    { value: "sakura", label: "オレンジ" },
     { value: "lemon", label: "イエロー" },
     { value: "sky", label: "ブルー" },
     { value: "mint", label: "ミント" },
