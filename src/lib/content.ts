@@ -347,9 +347,9 @@ export const teachers = {
     },
     {
       id: "teacher-5",
-      name: "飛燕（インターン生）",
+      name: "重松飛燕（インターン生）",
       tone: "sakura",
-      imageLabel: "飛燕（インターン生）の写真",
+      imageLabel: "重松飛燕（インターン生）の写真",
       photo: "/images/teacher-hien.jpg" as string | null,
       school: "横須賀工業高校",
       /** 保有資格・メッセージが空のときは、その見出しごと表示しない */
