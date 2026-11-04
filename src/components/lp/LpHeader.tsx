@@ -85,11 +85,19 @@ export function LpHeader() {
             </span>
           </Link>
           <p className={s.menuSub}>
-            {lp.navSub.map((item) => (
-              <Link key={item.href} href={item.href} onClick={() => setOpen(false)} tabIndex={open ? 0 : -1}>
-                {item.label}
-              </Link>
-            ))}
+            {lp.navSub.map((item) =>
+              // ログイン（管理画面）は、ページを読み込み直して開く。サイト内の移動のままだと、
+              // 生徒向けページで動いていた GA4 の計測が続き、ログイン画面と管理画面の閲覧まで数えてしまうため
+              item.href === "/login" ? (
+                <a key={item.href} href={item.href} tabIndex={open ? 0 : -1}>
+                  {item.label}
+                </a>
+              ) : (
+                <Link key={item.href} href={item.href} onClick={() => setOpen(false)} tabIndex={open ? 0 : -1}>
+                  {item.label}
+                </Link>
+              ),
+            )}
           </p>
         </nav>
       </div>
