@@ -1866,7 +1866,13 @@
 .siteHeader {
   position: sticky;
   top: 0;
-  z-index: 60;
+  /* 開いたメニューが、画面下の追従ボタン（z-index: 60）より上に来るようにする */
+  z-index: 70;
+}
+/* メニューを開いているあいだは、画面下の追従ボタンを隠す */
+.root:has(.menuLayer[data-open]) .sticky {
+  opacity: 0;
+  pointer-events: none;
 }
 .siteHeaderBar {
   position: relative;
