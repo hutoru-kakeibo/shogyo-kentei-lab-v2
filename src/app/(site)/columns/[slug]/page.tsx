@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { columns, siteMeta } from "@/lib/content";
-import { formatArticleDate, getArticleBySlug, toJstDate } from "@/lib/articles";
-import { ArticleBody } from "@/components/ui/ArticleBody";
+import { formatArticleDate, getArticleBySlug, getArticleSummaries, toJstDate } from "@/lib/articles";
+import { ArticleBody, articleHeadings } from "@/components/ui/ArticleBody";
 import { ArticleCategoryTag } from "@/components/ui/ArticleCategoryTag";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { withDefaultOpenGraph } from "@/lib/seo";
-import { CtaCard, PageHead } from "@/components/lp/LpParts";
+import { ScrollEffects } from "@/components/lp/LpClient";
+import { CtaCard } from "@/components/lp/LpParts";
+import { ColumnCards } from "@/components/lp/LpPosts";
 import s from "@/components/lp/lp.module.css";
 
 export const revalidate = 300;
@@ -48,6 +50,8 @@ export default async function ColumnPage({ params }: PageProps<"/columns/[slug]"
   const url = `${siteMeta.url}/columns/${slug}`;
   const updatedDate = toJstDate(article.updatedAt);
   const showUpdated = updatedDate > article.publishedAt;
+  const headings = articleHeadings(article.body);
+  const related = (await getArticleSummaries(4)).filter((item) => item.slug !== slug).slice(0, 3);
 
   return (
     <main>
@@ -66,35 +70,68 @@ export default async function ColumnPage({ params }: PageProps<"/columns/[slug]"
         ]}
       />
 
-      <article>
-        <PageHead
-          eyebrow={columns.englishTitle}
-          title={article.title}
-          lead={article.description}
-          back={{ label: columns.backToList, href: "/columns" }}
-          meta={
-            <>
-              <ArticleCategoryTag category={article.category} />
-              <span>
-                {columns.publishedLabel}{" "}
-                <time dateTime={article.publishedAt}>{formatArticleDate(article.publishedAt)}</time>
-              </span>
-              {showUpdated ? (
-                <span>
-                  {columns.updatedLabel} <time dateTime={updatedDate}>{formatArticleDate(updatedDate)}</time>
-                </span>
-              ) : null}
-            </>
-          }
-        />
+      <ScrollEffects />
 
-        <div className={s.pageBody} style={{ paddingTop: 32 }}>
+      <article>
+        <header className={`${s.articleHead} ${s.gridW}`}>
+          <Link href="/columns" className={s.pageBack}>
+            ‹ {columns.backToList}
+          </Link>
+          <p className={s.eyebrow}>{columns.englishTitle}</p>
+          <h1 className={s.articleTitle}>{article.title}</h1>
+          <div className={s.articleMeta}>
+            <ArticleCategoryTag category={article.category} />
+            <span>
+              {columns.publishedLabel}{" "}
+              <time dateTime={article.publishedAt}>{formatArticleDate(article.publishedAt)}</time>
+            </span>
+            {showUpdated ? (
+              <span>
+                {columns.updatedLabel} <time dateTime={updatedDate}>{formatArticleDate(updatedDate)}</time>
+              </span>
+            ) : null}
+          </div>
+          <p className={s.articleLead}>{article.description}</p>
+        </header>
+
+        <div className={s.articleBody}>
+          {/* 長い記事で読みたい場所へ飛べるように、大見出しが3つ以上あれば目次を出す */}
+          {headings.length >= 3 ? (
+            <nav className={s.articleToc} aria-label={columns.tocTitle}>
+              <div className={s.noteHead}>
+                <span className={s.noteTitle}>{columns.tocTitle}</span>
+              </div>
+              <ol className={s.articleTocList}>
+                {headings.map((heading, i) => (
+                  <li key={heading}>
+                    <a href={`#section-${i + 1}`}>
+                      <span className={s.articleTocNo}>{String(i + 1).padStart(2, "0")}</span>
+                      {heading}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          ) : null}
           <ArticleBody source={article.body} />
         </div>
       </article>
 
       <CtaCard title={columns.cta.title} body={columns.cta.body} label={columns.cta.label} href={columns.cta.href} cta="column_cta" />
-      <p className={s.moreLink} style={{ margin: 0, paddingBottom: 40, background: "#fff" }}>
+
+      {related.length > 0 ? (
+        <section className={`${s.columnRelated} ${s.gridW}`}>
+          <p className={s.eyebrow} data-rv>
+            {columns.relatedEyebrow}
+          </p>
+          <h2 className={s.columnRelatedTitle} data-rv>
+            {columns.relatedTitle}
+          </h2>
+          <ColumnCards items={related} />
+        </section>
+      ) : null}
+
+      <p className={`${s.moreLink} ${s.columnBack} ${s.gridW}`}>
         <Link href="/columns">‹ {columns.backToList}</Link>
       </p>
     </main>

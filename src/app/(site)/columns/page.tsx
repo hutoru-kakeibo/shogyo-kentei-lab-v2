@@ -3,7 +3,8 @@ import { columns, siteMeta } from "@/lib/content";
 import { getArticleSummaries } from "@/lib/articles";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { withDefaultOpenGraph } from "@/lib/seo";
-import { PageHead } from "@/components/lp/LpParts";
+import { ScrollEffects } from "@/components/lp/LpClient";
+import { CtaCard, PageHead } from "@/components/lp/LpParts";
 import { ColumnCards } from "@/components/lp/LpPosts";
 import s from "@/components/lp/lp.module.css";
 
@@ -33,11 +34,16 @@ export default async function ColumnListPage() {
         ]}
       />
 
+      {/* カードは画面に入ったときに表示する（data-rv）ので、この部品がないと見えないままになる */}
+      <ScrollEffects />
+
       <PageHead eyebrow={columns.englishTitle} title={columns.title} lead={columns.listLead} />
 
-      <section className={s.pageBody} style={{ paddingInline: 0 }}>
+      <section className={`${s.columnListSec} ${s.gridW}`}>
         {items.length > 0 ? <ColumnCards items={items} /> : <p className={s.emptyNote}>{columns.emptyMessage}</p>}
       </section>
+
+      <CtaCard title={columns.cta.title} body={columns.cta.body} label={columns.cta.label} href={columns.cta.href} cta="column_list" />
     </main>
   );
 }

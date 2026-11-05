@@ -2207,21 +2207,6 @@
   margin-top: 26px;
   padding: 0 14px;
 }
-.postCard {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 14px;
-  background: #fff;
-  border: 2px solid var(--ink);
-  border-radius: 14px;
-  box-shadow: 4px 4px 0 var(--ink);
-  transition: transform 0.15s;
-}
-.postCard:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 var(--ink);
-}
 .postMeta {
   display: flex;
   flex-wrap: wrap;
@@ -2236,23 +2221,6 @@
   font-size: 15px;
   font-weight: 900;
   line-height: 1.55;
-}
-.postDesc {
-  display: -webkit-box;
-  margin-top: 6px;
-  overflow: hidden;
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--mute);
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-.postArrow {
-  flex-shrink: 0;
-  margin-left: auto;
-  font-size: 18px;
-  font-weight: 900;
-  color: var(--orange-2);
 }
 /* お知らせの文中のリンク（長いURLでも横にはみ出さないよう折り返す） */
 .inlineLink {
@@ -2270,6 +2238,167 @@
 .newsRow:first-child {
   border-top: 1.5px dashed rgba(28, 25, 23, 0.2);
 }
+/* ---------- コラム（2026-11-06 に見直し） ---------- */
+/* 一覧とトップのカード */
+.columnListSec {
+  padding: 0 0 48px;
+}
+.columnListSec .postList {
+  margin-top: 0;
+}
+.columnCard {
+  display: block;
+  padding: 16px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+.columnCard:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.columnCardTitle {
+  margin-top: 10px;
+  font-size: 16.5px;
+  font-weight: 900;
+  line-height: 1.55;
+  word-break: auto-phrase;
+}
+.columnCardDesc {
+  display: -webkit-box;
+  margin-top: 8px;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--mute);
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.columnCardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  font-size: 12.5px;
+  font-weight: 900;
+  color: var(--orange-2);
+  border-top: 1.5px dashed rgba(28, 25, 23, 0.2);
+}
+.columnCardArrow {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding-bottom: 2px;
+  font-size: 16px;
+  line-height: 1;
+  color: #fff;
+  background: var(--grad);
+  border-radius: 50%;
+}
+
+/* 記事の見出し。タイトルが長いので左寄せにして、文節の途中で折り返さない */
+.articleHead {
+  padding: 18px 16px 28px;
+}
+.articleHead .eyebrow {
+  justify-content: flex-start;
+  margin-top: 22px;
+}
+.articleHead .eyebrow::before,
+.articleHead .eyebrow::after {
+  display: none;
+}
+.articleTitle {
+  margin-top: 8px;
+  font-family: var(--f-serif);
+  font-size: clamp(23px, calc(23px + 3 * (100vw - 375px) / 105), 26px);
+  font-weight: 900;
+  line-height: 1.5;
+  word-break: auto-phrase;
+}
+.articleMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mute);
+}
+.articleLead {
+  margin-top: 16px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  background: #fff;
+  border-left: 4px solid var(--orange);
+}
+.articleBody {
+  padding: 28px 16px 48px;
+  background: #fff;
+}
+
+/* 目次（ノート風。トップのノートと同じ見た目で、傾けない） */
+.articleToc {
+  position: relative;
+  margin-bottom: 32px;
+  background: #fffdf8;
+  border: 1px solid #e7e5e4;
+  border-radius: 4px;
+  box-shadow: 0 8px 18px rgba(28, 25, 23, 0.1);
+}
+.articleTocList {
+  padding: 6px 12px 10px 14px;
+}
+.articleTocList li + li {
+  border-top: 1px solid rgba(59, 130, 246, 0.16);
+}
+.articleTocList a {
+  display: flex;
+  gap: 10px;
+  padding: 9px 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.6;
+  word-break: auto-phrase;
+}
+.articleTocNo {
+  flex-shrink: 0;
+  font-family: var(--f-en);
+  font-weight: 900;
+  font-style: italic;
+  color: var(--orange-2);
+}
+.articleToc .noteHead {
+  padding-left: 14px;
+}
+
+/* 記事の下の「ほかのコラム」 */
+.columnRelated {
+  padding: 8px 0 8px;
+}
+.columnRelatedTitle {
+  margin-top: 10px;
+  font-family: var(--f-serif);
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.45;
+  text-align: center;
+}
+.moreLink.columnBack {
+  margin: 0;
+  padding: 24px 0 48px;
+}
+
 .moreLink {
   display: flex;
   justify-content: center;

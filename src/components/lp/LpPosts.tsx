@@ -12,18 +12,19 @@ export function ColumnCards({ items }: { items: ArticleSummary[] }) {
     <ul className={s.postList}>
       {items.map((item) => (
         <li key={item.slug} data-rv>
-          <Link href={`/columns/${item.slug}`} className={s.postCard}>
-            <div style={{ minWidth: 0 }}>
-              <div className={s.postMeta}>
-                <ArticleCategoryTag category={item.category} />
-                <time dateTime={item.publishedAt}>{formatArticleDate(item.publishedAt)}</time>
-              </div>
-              <h3 className={s.postTitle}>{item.title}</h3>
-              <p className={s.postDesc}>{item.description}</p>
+          <Link href={`/columns/${item.slug}`} className={s.columnCard}>
+            <div className={s.postMeta}>
+              <ArticleCategoryTag category={item.category} />
+              <time dateTime={item.publishedAt}>{formatArticleDate(item.publishedAt)}</time>
             </div>
-            <span className={s.postArrow} aria-hidden>
-              ›
-            </span>
+            <h3 className={s.columnCardTitle}>{item.title}</h3>
+            <p className={s.columnCardDesc}>{item.description}</p>
+            <p className={s.columnCardFoot}>
+              {columns.readMoreLabel}
+              <span className={s.columnCardArrow} aria-hidden>
+                ›
+              </span>
+            </p>
           </Link>
         </li>
       ))}

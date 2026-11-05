@@ -919,6 +919,10 @@ export const columns = {
   moreHref: "/columns",
   emptyMessage: "現在公開中のコラムはありません。",
   backToList: "コラム一覧に戻る",
+  readMoreLabel: "続きを読む",
+  tocTitle: "この記事の目次",
+  relatedEyebrow: "MORE",
+  relatedTitle: "ほかのコラム",
   publishedLabel: "公開日",
   updatedLabel: "更新日",
   /** カテゴリの選択肢。ArticleCategoryTag.tsx の色分けとセットになっている */
