@@ -839,6 +839,42 @@
   background: var(--ink);
 }
 
+/* こんなお悩みはありませんか？（ノートは約束のイラストと同じ .window を使う） */
+.worries {
+  padding: 56px 20px 52px;
+}
+.worries .windowBody {
+  min-height: 0;
+  padding-bottom: 14px;
+}
+.worries .arrowDown {
+  margin-top: 30px;
+}
+.worryItem {
+  display: flex;
+  gap: 8px;
+  /* 折り返しても文字が罫線に乗るように、1行の高さを罫線に合わせる */
+  font-size: 13.5px;
+  font-weight: 900;
+  line-height: var(--rule);
+  word-break: auto-phrase;
+}
+/* オレンジの語句は途中で折り返さない */
+.worryItem .hl {
+  display: inline-block;
+}
+.worryItem .checkBox {
+  flex-shrink: 0;
+  margin-top: 5px;
+  line-height: 1;
+}
+.worryItem .checkBox i {
+  transition-delay: calc(0.3s + var(--i) * 0.25s);
+}
+.worriesAnswer {
+  margin-top: 26px;
+}
+
 /* ノート（授業プリント）風のイラスト枠：罫線・赤い余白線・とじ穴・マスキングテープ */
 .window {
   --rule: 28px;

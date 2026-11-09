@@ -70,6 +70,25 @@ export const lp = {
 
   band: "Who are we?",
 
+  /** 「こんなお悩みはありませんか？」（WHY LAB の直前）。下の5つの約束につながるお悩みを並べる */
+  worries: {
+    eyebrow: "YOUR WORRIES",
+    titleBefore: "こんな",
+    titleKeyword: "お悩み",
+    titleAfter: "は",
+    title2: "ありませんか？",
+    noteTitle: "検定のお悩みチェック",
+    items: [
+      [{ t: "仕訳や関数でつまずいて、" }, { t: "どこがわからないのかもわからない", hl: true }],
+      [{ t: "受ける検定が多くて、" }, { t: "何から手をつければいいか", hl: true }, { t: "迷っている" }],
+      [{ t: "学校の授業だけでは" }, { t: "合格できるか不安", hl: true }],
+      [{ t: "授業中に" }, { t: "質問しづらくて", hl: true }, { t: "、わからないまま進んでしまう" }],
+      [{ t: "部活やテスト週間で忙しくて、" }, { t: "塾に通う時間がない", hl: true }],
+      [{ t: "検定だけでなく、" }, { t: "推薦入試や就職のことも", hl: true }, { t: "相談したい" }],
+    ],
+    answer: [[{ t: "そのお悩み、" }], [{ t: "商ラボ", hl: true }, { t: "が解決します" }]],
+  },
+
   why: {
     eyebrow: "WHY LAB",
     titleBefore: "なぜ",

@@ -269,6 +269,45 @@ export default async function Home() {
             className={`${s.band} ${s.bandOrange}`}
           />
 
+          {/* こんなお悩みはありませんか？ */}
+          <section id="worries" className={`${s.worries} ${s.gridW}`}>
+            <p className={s.eyebrow} data-rv>
+              {lp.worries.eyebrow}
+            </p>
+            <h2 className={s.secTitle} data-rv>
+              {lp.worries.titleBefore}
+              <span className={s.hl}>{lp.worries.titleKeyword}</span>
+              {lp.worries.titleAfter}
+              <br />
+              {lp.worries.title2}
+            </h2>
+            <div className={s.window} data-rv>
+              <div className={s.noteHead}>
+                <span className={s.noteTitle}>{lp.worries.noteTitle}</span>
+              </div>
+              <ul className={s.windowBody}>
+                {lp.worries.items.map((parts, i) => (
+                  <li key={i} className={s.worryItem} style={{ "--i": i } as React.CSSProperties}>
+                    <span className={s.checkBox}>
+                      <i>✓</i>
+                    </span>
+                    <span>
+                      <Parts parts={parts} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className={s.arrowDown} aria-hidden />
+            <p className={`${s.result} ${s.worriesAnswer}`} data-rv="bars">
+              {lp.worries.answer.map((parts, j) => (
+                <span key={j} className={s.resultLine}>
+                  <Parts parts={parts} />
+                </span>
+              ))}
+            </p>
+          </section>
+
           {/* なぜ商ラボだと合格に近づくのか */}
           <section id="promise" className={`${s.whyHead} ${s.gridD}`}>
             <p className={s.eyebrow} data-rv>
