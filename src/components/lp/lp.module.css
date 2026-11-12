@@ -1243,6 +1243,8 @@
 }
 .voiceImg img {
   object-fit: cover;
+  /* 縦長の写真・イラストでも顔が切れないように、上を合わせて下を切る（2026-11-12） */
+  object-position: center top;
 }
 .voiceWho {
   margin-top: 14px;
