@@ -1118,15 +1118,19 @@
   color: var(--mute);
 }
 .unis {
-  display: flex;
+  /* 大学は2つずつ並べる（はんこが上の段に重ならないよう、段の間を広めに） */
+  display: grid;
+  grid-template-columns: repeat(2, auto);
   justify-content: center;
-  gap: 12px;
+  gap: 18px 12px;
   margin-top: 8px;
 }
 .uni {
   position: relative;
   padding: 8px 22px 8px 12px;
-  font-size: 15px;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
   font-weight: 900;
   background: #fff;
   border: 2px solid var(--ink);
@@ -2702,6 +2706,12 @@
 }
 .uni:nth-child(2) .uniStamp {
   transition-delay: 1.2s;
+}
+.uni:nth-child(3) .uniStamp {
+  transition-delay: 1.5s;
+}
+.uni:nth-child(4) .uniStamp {
+  transition-delay: 1.8s;
 }
 [data-in] .uniStamp {
   transform: scale(1) rotate(-12deg);

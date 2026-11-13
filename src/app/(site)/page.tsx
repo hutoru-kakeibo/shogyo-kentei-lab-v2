@@ -111,7 +111,7 @@ function PromiseWindow({ kind, no }: { kind: (typeof lp.promises)[number]["windo
       </>
     );
   } else {
-    // 合格実績（2026-11-05 運営者の指示。数字と大学名は運営者が示した実績。lp-content.ts の約束05）
+    // 合格実績（2026-11-05 運営者の指示。広島修道大学・専修大学は 2026-11 に追加。数字と大学名は運営者が示した実績。lp-content.ts の約束05）
     body = (
       <>
         <p className={s.rate}>
@@ -122,7 +122,7 @@ function PromiseWindow({ kind, no }: { kind: (typeof lp.promises)[number]["windo
         </p>
         <p className={s.uniLabel}>大学の合格実績</p>
         <div className={s.unis}>
-          {["関西大学", "文教大学"].map((u) => (
+          {["関西大学", "文教大学", "広島修道大学", "専修大学"].map((u) => (
             <span key={u} className={s.uni}>
               {u}
               <i className={s.uniStamp}>合格</i>
