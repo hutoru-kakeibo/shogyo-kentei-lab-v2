@@ -1,3 +1,9 @@
+# 商業検定ラボ ウェブサイト
+
+**開発を引き継いだ方は、最初に [HANDOFF.md](HANDOFF.md)（引き継ぎ資料）を読んでください。** 仕様と変更履歴は [SPEC.md](SPEC.md)。
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
