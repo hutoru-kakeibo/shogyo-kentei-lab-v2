@@ -24,7 +24,7 @@ export const privacyPolicy = {
   /** 制定日（YYYY-MM-DD） */
   enactedAt: "2026-10-02",
   /** 最後に改定した日（YYYY-MM-DD）。内容を変えたら更新する */
-  revisedAt: "2026-11-01",
+  revisedAt: "2026-11-19",
   sections: [
     {
       heading: "1. 事業者",
@@ -66,6 +66,8 @@ export const privacyPolicy = {
         "Supabase（お申し込み内容の保存）",
         "Google（Gmail によるメールの送受信、Googleアナリティクスによるアクセス解析）",
         "Vercel（本サイトの配信）",
+        "Cloudflare（お申し込み管理システムの運用および通知処理）",
+        "LINEヤフー（LINE による当塾管理者への申し込み通知および管理画面の利用）",
       ],
     },
     {
