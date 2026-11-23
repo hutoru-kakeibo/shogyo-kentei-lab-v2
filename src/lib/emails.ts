@@ -24,7 +24,7 @@ function summary(input: TrialApplicationInput) {
     `希望日時     : ${formatDate(input.preferredDate)} ${input.preferredTime}`,
     `お名前       : ${input.name}${input.kana ? `（${input.kana}）` : ""}`,
     `学年         : ${input.gradeYear}`,
-    `学校名       : ${input.school}`,
+    ...(input.school?.trim() ? [`学校名       : ${input.school.trim()}`] : []),
     `メール       : ${input.email}`,
     ...(input.tel ? [`電話番号     : ${input.tel}`] : []),
     "相談したいこと:",

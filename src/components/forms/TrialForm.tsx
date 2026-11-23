@@ -26,7 +26,6 @@ type Values = {
   name: string;
   kana: string;
   gradeYear: string;
-  school: string;
   email: string;
   /** 電話番号（無料体験だけ必須。授業の申し込みでは出さない） */
   tel: string;
@@ -48,7 +47,6 @@ const initialValues: Values = {
   name: "",
   kana: "",
   gradeYear: "",
-  school: "",
   email: "",
   tel: "",
   preferredDate: "",
@@ -79,7 +77,7 @@ const kind = "trial";
 /** 各ステップで入力チェックする項目（並びはエラー時にスクロールする順） */
 const stepFields: (keyof Values)[][] = [
   ["subject", "targetGrade"],
-  ["name", "gradeYear", "school", "email", "tel"],
+  ["name", "gradeYear", "email", "tel"],
   ["preferredDate", "preferredTime", "consent"],
 ];
 const lastStep = stepFields.length - 1;
@@ -250,7 +248,6 @@ export function TrialForm({ subjectSlug, doneHref }: Props) {
     else if (gradeOptions && !gradeOptions.includes(values.targetGrade)) next.targetGrade = messages.select;
     if (!values.name.trim()) next.name = messages.required;
     if (!values.gradeYear) next.gradeYear = messages.select;
-    if (!values.school.trim()) next.school = messages.required;
     if (!values.email.trim()) {
       next.email = messages.required;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
@@ -510,22 +507,6 @@ export function TrialForm({ subjectSlug, doneHref }: Props) {
               ))}
             </select>
             <ErrorText id="gradeYear-error" message={errors.gradeYear} />
-          </div>
-
-          {/* 学校名 */}
-          <div>
-            <FieldLabel htmlFor="school" label="学校名" required />
-            <input
-              id="school"
-              type="text"
-              placeholder="○○県立○○商業高等学校"
-              value={values.school}
-              onChange={(event) => update("school", event.target.value)}
-              aria-invalid={Boolean(errors.school)}
-              aria-describedby={errors.school ? "school-error" : undefined}
-              className={inputClass}
-            />
-            <ErrorText id="school-error" message={errors.school} />
           </div>
 
           {/* メールアドレス */}

@@ -14,7 +14,8 @@ export type TrialApplicationInput = {
   name: string;
   kana: string;
   gradeYear: string;
-  school: string;
+  /** 学校名（2026-11-23 にフォームから削除。互換用に任意項目として残す） */
+  school?: string;
   email: string;
   /** 電話番号（必須） */
   tel: string;
@@ -121,7 +122,6 @@ export async function submitTrialApplication(
     isValidTargetGrade(input.subject, input.targetGrade) &&
     input.name.trim() &&
     input.gradeYear &&
-    input.school.trim() &&
     emailPattern.test(input.email.trim()) &&
     isValidTel(input.tel ?? "") &&
     input.preferredDate &&
@@ -152,7 +152,8 @@ export async function submitTrialApplication(
     name: input.name.trim(),
     kana: input.kana.trim() || null,
     grade_year: input.gradeYear,
-    school: input.school.trim(),
+    // DBの school 列が NOT NULL で、生徒管理アプリ側も school=neq.（生徒管理アプリ）で絞るため空文字で保存する
+    school: input.school?.trim() || "",
     email: input.email.trim(),
     // 数字だけにそろえて保存する（管理画面の「電話する」でそのまま使える）
     tel: normalizeTel(input.tel),
