@@ -1110,6 +1110,12 @@
 .rateNum small {
   font-size: 30px;
 }
+.rateNote {
+  margin-top: 2px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--mute);
+}
 .uniLabel {
   margin-top: 10px;
   text-align: center;

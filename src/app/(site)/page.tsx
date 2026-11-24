@@ -120,6 +120,7 @@ function PromiseWindow({ kind, no }: { kind: (typeof lp.promises)[number]["windo
             100<small>%</small>
           </span>
         </p>
+        <p className={s.rateNote}>※2026年度 受講生7名の実績</p>
         <p className={s.uniLabel}>大学の合格実績</p>
         <div className={s.unis}>
           {["関西大学", "文教大学", "広島修道大学", "専修大学"].map((u) => (
