@@ -36,7 +36,7 @@ function summary(input: TrialApplicationInput) {
 async function sendApplicantMail(input: TrialApplicationInput) {
   const opening = `このたびは${siteMeta.name}の無料体験にお申し込みいただき、ありがとうございます。`;
   const nextStep =
-    "担当者が内容を確認のうえ、3日以内にこのメールアドレスへご連絡します。\n日程の調整もそのときに行いますので、少しお待ちください。";
+    "当日は下記URLからご参加ください！\nhttps://meet.google.com/szh-wafj-rny";
 
   const text = `${input.name} 様
 
@@ -49,13 +49,15 @@ ${summary(input)}
 
 ${nextStep}
 
-ご不明な点があれば、このメールにそのままご返信ください。
+
+ご不明な点があれば、このメールか下記連絡先にそのままご返信ください。
 
 ※ このメールにお心当たりがない場合は、破棄してくださいますようお願いします。
 
 --
 ${siteMeta.name}（${siteMeta.tagline}）
 ${siteMeta.url}
+電話番号：070-2427-9325
 `;
 
   return sendMail({
